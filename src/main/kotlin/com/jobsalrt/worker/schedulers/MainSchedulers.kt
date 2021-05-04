@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import reactor.util.function.Tuple3
 
 @Component
@@ -23,7 +22,7 @@ class MainSchedulers(
     @Autowired private val sarkariResultUrlFetcher: SarkariResultUrlFetcher,
     @Autowired private val jobSarkariPostFetcher: JobSarkariPostFetcher
 ) {
-    @Scheduled(cron = " 0/5 * * * * *")
+    @Scheduled(cron = " 0 22 * * * *")
     @SchedulerLock(name = "MainSchedulers_start", lockAtLeastFor = "5m", lockAtMostFor = "5m")
     fun start() {
 //        val second = LocalDateTime.now().second
@@ -33,8 +32,11 @@ class MainSchedulers(
         updatePosts().subscribe()
     }
 
-    private fun updatePosts(): Mono<Post> {
-        return jobUrlService.findById("6090b2191980e134f59246b9")
+    private fun updatePosts(): Flux<Post> {
+        return jobUrlService.getAllNotFetched()
+            .filter {
+                it.url.contains("rojgarresult")
+            }
             .flatMap {
                 jobSarkariPostFetcher.fetchPost(it)
             }

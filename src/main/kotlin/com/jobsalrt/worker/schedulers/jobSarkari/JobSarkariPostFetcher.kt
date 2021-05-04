@@ -2,6 +2,7 @@ package com.jobsalrt.worker.schedulers.jobSarkari
 
 import com.jobsalrt.worker.domain.*
 import com.jobsalrt.worker.schedulers.PostFetcher
+import com.jobsalrt.worker.service.PostService
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
@@ -13,7 +14,10 @@ import java.time.format.DateTimeFormatter
 
 
 @Service
-class JobSarkariPostFetcher(@Autowired webClientWrapper: WebClientWrapper) : PostFetcher(webClientWrapper) {
+class JobSarkariPostFetcher(
+    @Autowired webClientWrapper: WebClientWrapper,
+    @Autowired postService: PostService
+) : PostFetcher(webClientWrapper, postService) {
     fun fetchPost(jobUrl: JobUrl): Mono<Post> {
         return fetch(jobUrl)
     }
@@ -87,14 +91,19 @@ class JobSarkariPostFetcher(@Autowired webClientWrapper: WebClientWrapper) : Pos
         return BasicDetails(
             name = document.select("h1").text().trim(),
             formTye = FormType.of(findValueFromKeyRegex(map, "form type") ?: ""),
-            totalVacancies = findValueFromKeyRegex(map, "total vacancies")?.toLong(),
             location = findValueFromKeyRegex(map, "location"),
             company = findValueFromKeyRegex(map, "company"),
             qualification = findValueFromKeyRegex(map, "qualification"),
-            lastDate = LocalDate.parse(
-                findValueFromKeyRegex(map, "last date"),
-                DateTimeFormatter.ofPattern("dd/MM/yyyy")
-            )
+            lastDate = try {
+                LocalDate.parse(findValueFromKeyRegex(map, "last date"), DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+            } catch (e: Exception) {
+                null
+            },
+            totalVacancies = try {
+                findValueFromKeyRegex(map, "total vacancies")?.toLong()
+            } catch (e: Exception) {
+                null
+            }
         )
     }
 
