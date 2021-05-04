@@ -3,6 +3,8 @@ package com.jobsalrt.worker.schedulers
 import com.jobsalrt.worker.domain.JobUrl
 import com.jobsalrt.worker.service.JobUrlService
 import com.jobsalrt.worker.webClient.WebClientWrapper
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.springframework.dao.DuplicateKeyException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -18,12 +20,13 @@ abstract class UrlFetcher(
             returnType = String::class.java,
         )
             .flatMapMany {
-                val jobUrls = getJobUrls(it)
+                val document = Jsoup.parse(it)
+                val jobUrls = getJobUrls(document)
                 saveAll(jobUrls)
             }
     }
 
-    abstract fun getJobUrls(htmlString: String): List<JobUrl>
+    abstract fun getJobUrls(document: Document): List<JobUrl>
 
     private fun saveAll(jobUrls: List<JobUrl>): Flux<JobUrl> {
         return Flux.fromIterable(jobUrls)

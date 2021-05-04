@@ -4,7 +4,7 @@ import com.jobsalrt.worker.domain.JobUrl
 import com.jobsalrt.worker.schedulers.UrlFetcher
 import com.jobsalrt.worker.service.JobUrlService
 import com.jobsalrt.worker.webClient.WebClientWrapper
-import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
@@ -20,8 +20,7 @@ class JobSarkariUrlFetcher(
         return fetch(baseUrl = "https://www.jobsarkari.com", path = "/")
     }
 
-    override fun getJobUrls(htmlString: String): List<JobUrl> {
-        val document = Jsoup.parse(htmlString)
+    override fun getJobUrls(document: Document): List<JobUrl> {
         return document.select(".main_cards_container")
             .select("a")
             .toList()
