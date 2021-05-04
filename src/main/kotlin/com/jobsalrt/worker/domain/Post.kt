@@ -32,7 +32,7 @@ data class Post(
 
 data class BasicDetails(
     val name: String,
-    val formTye: String? = null,
+    val formTye: FormType,
     val lastDate: LocalDate? = null,
     val totalVacancies: Long? = null,
     val location: String? = null,
@@ -50,10 +50,15 @@ data class Details(
     val body: List<List<String>>
 )
 
-
 enum class FormType {
     ONLINE,
-    OFFLINE
+    OFFLINE;
+
+    companion object {
+        fun of(type: String): FormType {
+            return if (type.toLowerCase().matches(Regex("online"))) ONLINE else OFFLINE
+        }
+    }
 }
 
 enum class Type {
