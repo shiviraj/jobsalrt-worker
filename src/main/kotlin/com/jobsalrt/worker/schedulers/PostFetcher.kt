@@ -8,7 +8,6 @@ import com.jobsalrt.worker.service.PostService
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.springframework.dao.DuplicateKeyException
 import reactor.core.publisher.Mono
 
 abstract class PostFetcher(private val webClientWrapper: WebClientWrapper, private val postService: PostService) {
@@ -31,16 +30,17 @@ abstract class PostFetcher(private val webClientWrapper: WebClientWrapper, priva
                 post.howToApply = getHowToApplyDetails(document)
                 post.importantLinks = getImportantLinks(document)
                 post.others = getOtherDetails(document)
+                println(post)
                 post
             }
-            .flatMap {
-                postService.save(it)
-            }
-            .onErrorResume {
-                if (it is DuplicateKeyException)
-                    Mono.empty()
-                else throw  it
-            }
+//            .flatMap {
+//                postService.save(it)
+//            }
+//            .onErrorResume {
+//                if (it is DuplicateKeyException)
+//                    Mono.empty()
+//                else throw  it
+//            }
     }
 
     abstract fun getOtherDetails(document: Document): Map<String, Details>?
