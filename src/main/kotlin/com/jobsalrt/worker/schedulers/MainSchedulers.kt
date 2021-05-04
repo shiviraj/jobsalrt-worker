@@ -1,6 +1,7 @@
 package com.jobsalrt.worker.schedulers
 
 import com.jobsalrt.worker.domain.JobUrl
+import com.jobsalrt.worker.domain.Post
 import com.jobsalrt.worker.schedulers.jobSarkari.JobSarkariPostFetcher
 import com.jobsalrt.worker.schedulers.jobSarkari.JobSarkariUrlFetcher
 import com.jobsalrt.worker.schedulers.rojgarResult.RojgarResultUrlFetcher
@@ -32,7 +33,7 @@ class MainSchedulers(
         updatePosts().subscribe()
     }
 
-    private fun updatePosts(): Mono<String> {
+    private fun updatePosts(): Mono<Post> {
         return jobUrlService.findById("6090b2191980e134f59246b9")
             .flatMap {
                 jobSarkariPostFetcher.fetchPost(it)
