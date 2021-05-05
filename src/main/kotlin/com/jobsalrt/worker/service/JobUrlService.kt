@@ -21,4 +21,8 @@ class JobUrlService(@Autowired private val jobUrlRepository: JobUrlRepository) {
     fun findById(id: String): Mono<JobUrl> {
         return jobUrlRepository.findById(id)
     }
+
+    fun findByUrl(url: String): Mono<JobUrl> {
+        return jobUrlRepository.findByUrl(url)
+    }
 }

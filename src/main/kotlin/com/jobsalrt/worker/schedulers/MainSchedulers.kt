@@ -1,7 +1,6 @@
 package com.jobsalrt.worker.schedulers
 
 import com.jobsalrt.worker.domain.JobUrl
-import com.jobsalrt.worker.domain.Post
 import com.jobsalrt.worker.schedulers.jobSarkari.JobSarkariPostFetcher
 import com.jobsalrt.worker.schedulers.jobSarkari.JobSarkariUrlFetcher
 import com.jobsalrt.worker.schedulers.rojgarResult.RojgarResultPostFetcher
@@ -13,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import reactor.util.function.Tuple3
 
 @Component
@@ -31,16 +29,23 @@ class MainSchedulers(
 //        val second = LocalDateTime.now().second
 //        if (second == 0)
 //        fetchUrls().subscribe()
-//        else updatePosts()
-
+//        else
         updatePosts().subscribe()
     }
 
-    private fun updatePosts(): Mono<Post> {
-        return jobUrlService.findById("6091206c92229c337e24e167")
+    private fun updatePosts(): Flux<JobUrl> {
+        return jobUrlService.getAllNotFetched()
+            .filter {
+                it.url.contains(Regex("(rojgarresult.com)", RegexOption.IGNORE_CASE))
+            }
             .flatMap {
-//                jobSarkariPostFetcher.fetchPost(it)
-                rojgarResultPostFetcher.fetchPost(it)
+                rojgarResultPostFetcher.fetch(it)
+            }.flatMap {
+                jobUrlService.findByUrl(it.source)
+                    .flatMap { jobUrl ->
+                        jobUrl.isFetched = true
+                        jobUrlService.save(jobUrl)
+                    }
             }
     }
 

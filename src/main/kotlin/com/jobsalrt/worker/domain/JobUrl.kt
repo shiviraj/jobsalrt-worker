@@ -17,5 +17,5 @@ data class JobUrl(
     val name: String,
     @Indexed(unique = true)
     val url: String,
-    val isFetched: Boolean = false
+    var isFetched: Boolean = false
 )

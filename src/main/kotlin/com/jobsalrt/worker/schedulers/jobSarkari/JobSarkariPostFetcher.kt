@@ -1,14 +1,16 @@
 package com.jobsalrt.worker.schedulers.jobSarkari
 
-import com.jobsalrt.worker.domain.*
+import com.jobsalrt.worker.domain.BasicDetails
+import com.jobsalrt.worker.domain.Details
+import com.jobsalrt.worker.domain.FormType
 import com.jobsalrt.worker.schedulers.PostFetcher
+import com.jobsalrt.worker.service.CommunicationService
 import com.jobsalrt.worker.service.PostService
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -16,11 +18,9 @@ import java.time.format.DateTimeFormatter
 @Service
 class JobSarkariPostFetcher(
     @Autowired webClientWrapper: WebClientWrapper,
-    @Autowired postService: PostService
-) : PostFetcher(webClientWrapper, postService) {
-    fun fetchPost(jobUrl: JobUrl): Mono<Post> {
-        return fetch(jobUrl)
-    }
+    @Autowired postService: PostService,
+    @Autowired communicationService: CommunicationService
+) : PostFetcher(webClientWrapper, postService, communicationService) {
 
     override fun getOtherDetails(document: Document): Map<String, Details>? {
         val regexPattern =
@@ -86,6 +86,11 @@ class JobSarkariPostFetcher(
     }
 
     override fun getBasicDetails(document: Document): BasicDetails? {
+        val pair = findTableAndSelectHeaderAndBody(document, "important date")
+        val advtNo = pair.second?.find {
+            it.contains(Regex("advt", RegexOption.IGNORE_CASE))
+        }?.get(1)
+
         val map = createBasicDetailsMap(document)
 
         return BasicDetails(
@@ -94,6 +99,7 @@ class JobSarkariPostFetcher(
             location = findValueFromKeyRegex(map, "location"),
             company = findValueFromKeyRegex(map, "company"),
             qualification = findValueFromKeyRegex(map, "qualification"),
+            advtNo = advtNo,
             lastDate = try {
                 LocalDate.parse(findValueFromKeyRegex(map, "last date"), DateTimeFormatter.ofPattern("dd/MM/yyyy"))
             } catch (e: Exception) {

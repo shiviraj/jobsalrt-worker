@@ -25,7 +25,7 @@ class JobSarkariUrlFetcher(
             .select("a")
             .toList()
             .map { element ->
-                JobUrl(name = element.text(), url = element.attr("href"))
+                JobUrl(name = element.text().trim(), url = element.attr("href").trim())
             }
     }
 }

@@ -2,23 +2,23 @@ package com.jobsalrt.worker.schedulers.rojgarResult
 
 import com.jobsalrt.worker.domain.BasicDetails
 import com.jobsalrt.worker.domain.Details
-import com.jobsalrt.worker.domain.JobUrl
-import com.jobsalrt.worker.domain.Post
+import com.jobsalrt.worker.domain.FormType
 import com.jobsalrt.worker.schedulers.PostFetcher
+import com.jobsalrt.worker.service.CommunicationService
 import com.jobsalrt.worker.service.PostService
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 
 @Service
-class RojgarResultPostFetcher(webClientWrapper: WebClientWrapper, postService: PostService) :
-    PostFetcher(webClientWrapper, postService) {
-
-    fun fetchPost(jobUrl: JobUrl): Mono<Post> {
-        return fetch(jobUrl)
-    }
+class RojgarResultPostFetcher(
+    @Autowired webClientWrapper: WebClientWrapper,
+    @Autowired postService: PostService,
+    @Autowired communicationService: CommunicationService
+) :
+    PostFetcher(webClientWrapper, postService, communicationService) {
 
     override fun getOtherDetails(document: Document): Map<String, Details> {
         val tableData = document.select("#table").select("tr").toList()
@@ -46,7 +46,7 @@ class RojgarResultPostFetcher(webClientWrapper: WebClientWrapper, postService: P
     }
 
     override fun getImportantLinks(document: Document): Details? {
-        val tableData = document.select("#table").select("tr").toList()
+        val tableData = getMainTable(document)?.select("tr")?.toList() ?: emptyList()
 
         val startIndex = tableData.indexOfFirst {
             it.select("h2").text().contains(Regex("important link", RegexOption.IGNORE_CASE))
@@ -96,20 +96,41 @@ class RojgarResultPostFetcher(webClientWrapper: WebClientWrapper, postService: P
     }
 
     override fun getBasicDetails(document: Document): BasicDetails? {
-        return null
+        val subList = getMainTable(document)?.select("td")?.toList()?.subList(0, 3) ?: emptyList()
+        val name = subList.first().text().trim()
+        val totalPost = subList[2].text().split(" ")[1].trim()
+        val advtNo = try {
+            subList[1].select("h2")[1].text().trim().split(":")[1].trim()
+        } catch (e: Exception) {
+            null
+        }
+
+        return BasicDetails(
+            name = name,
+            formTye = FormType.ONLINE,
+            advtNo = advtNo,
+            totalVacancies = totalPost.toLong(),
+        )
+
     }
 
     private fun findTableData(document: Document, regexPattern: String): Element? {
-        return document.select("#table").select("td")
-            .toList()
-            .find {
-                it.select("h2").text().contains(Regex(regexPattern, RegexOption.IGNORE_CASE))
+        return getMainTable(document)?.select("td")
+            ?.toList()
+            ?.find {
+                it.text().contains(Regex(regexPattern, RegexOption.IGNORE_CASE))
             }
     }
 
-    private fun getTable(document: Document, regexPattern: String): List<Element> {
-        val tableData = document.select("#table").select("tr")
-            .toList()
+    private fun getMainTable(document: Document): Element? {
+        return if (document.select("#table").text() != "")
+            document.select("#table")[0]
+        else document.select("table")[0]
+    }
+
+    private fun getTableOfMultipleRows(document: Document, regexPattern: String): List<Element> {
+        val tableData = getMainTable(document)?.select("tr")
+            ?.toList() ?: emptyList()
         val startIndex = tableData.indexOfFirst {
             it.select("h2").text().contains(Regex(regexPattern, RegexOption.IGNORE_CASE))
         }
@@ -130,7 +151,7 @@ class RojgarResultPostFetcher(webClientWrapper: WebClientWrapper, postService: P
                 }
             Details(body = body!!)
         } else {
-            val body = getTable(document, regexPattern)
+            val body = getTableOfMultipleRows(document, regexPattern)
                 .map { e ->
                     e.select("td").toList()
                         .map { element ->

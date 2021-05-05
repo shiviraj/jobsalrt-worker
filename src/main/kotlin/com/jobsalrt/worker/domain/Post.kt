@@ -33,6 +33,7 @@ data class Post(
 data class BasicDetails(
     val name: String,
     val formTye: FormType,
+    val advtNo: String? = null,
     val lastDate: LocalDate? = null,
     val totalVacancies: Long? = null,
     val location: String? = null,
