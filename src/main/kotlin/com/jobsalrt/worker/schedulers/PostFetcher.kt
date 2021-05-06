@@ -28,6 +28,7 @@ abstract class PostFetcher(
                 updatePost(post, it)
             }
             .flatMap {
+                println(it)
                 postService.save(it)
             }
             .onErrorResume {
@@ -49,7 +50,7 @@ abstract class PostFetcher(
         updateDetails("How to Apply", errorStacks) { post.howToApply = getHowToApplyDetails(document) }
         updateDetails("Important Links", errorStacks) { post.importantLinks = getImportantLinks(document) }
         updateDetails("Other Details", errorStacks) { post.others = getOtherDetails(document) }
-        sendFailureNotification(errorStacks, post)
+//        sendFailureNotification(errorStacks, post)
         return post
     }
 
