@@ -1,9 +1,6 @@
 package com.jobsalrt.worker.schedulers
 
-import com.jobsalrt.worker.domain.BasicDetails
-import com.jobsalrt.worker.domain.Details
-import com.jobsalrt.worker.domain.JobUrl
-import com.jobsalrt.worker.domain.Post
+import com.jobsalrt.worker.domain.*
 import com.jobsalrt.worker.service.CommunicationService
 import com.jobsalrt.worker.service.PostService
 import com.jobsalrt.worker.webClient.WebClientWrapper
@@ -28,7 +25,6 @@ abstract class PostFetcher(
                 updatePost(post, it)
             }
             .flatMap {
-                println(it)
                 postService.save(it)
             }
             .onErrorResume {
@@ -50,7 +46,7 @@ abstract class PostFetcher(
         updateDetails("How to Apply", errorStacks) { post.howToApply = getHowToApplyDetails(document) }
         updateDetails("Important Links", errorStacks) { post.importantLinks = getImportantLinks(document) }
         updateDetails("Other Details", errorStacks) { post.others = getOtherDetails(document) }
-//        sendFailureNotification(errorStacks, post)
+        sendFailureNotification(errorStacks, post)
         return post
     }
 
@@ -70,7 +66,7 @@ abstract class PostFetcher(
 
     abstract fun getOtherDetails(document: Document): Map<String, Details>?
 
-    abstract fun getImportantLinks(document: Document): Details?
+    abstract fun getImportantLinks(document: Document): List<Link>?
 
     abstract fun getHowToApplyDetails(document: Document): List<String>?
 

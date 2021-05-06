@@ -3,6 +3,7 @@ package com.jobsalrt.worker.schedulers.sarkariResult
 import com.jobsalrt.worker.domain.BasicDetails
 import com.jobsalrt.worker.domain.Details
 import com.jobsalrt.worker.domain.FormType
+import com.jobsalrt.worker.domain.Link
 import com.jobsalrt.worker.schedulers.PostFetcher
 import com.jobsalrt.worker.service.CommunicationService
 import com.jobsalrt.worker.service.PostService
@@ -44,7 +45,7 @@ class SarkariResultPostFetcher(
         return map
     }
 
-    override fun getImportantLinks(document: Document): Details? {
+    override fun getImportantLinks(document: Document): List<Link>? {
         val tableData = findMainTable(document).select("tr")
             ?.toList() ?: emptyList()
         val startIndex = tableData.indexOfFirst {
@@ -55,19 +56,17 @@ class SarkariResultPostFetcher(
             it.select("td").select("h4").text().contains(Regex("official website", RegexOption.IGNORE_CASE))
         } + startIndex + 2
 
-        val body = tableData.subList(startIndex + 1, endIndex)
+        return tableData.subList(startIndex + 1, endIndex)
             .map {
                 val list = it.select("td").toList()
-                listOf(
-                    list.first().text().trim(),
-                    list[1].select("a").attr("href").trim()
-//                    list[1].select("a").toList()
-//                        .map { anchorTag ->
-//                            Pair(anchorTag.text().trim(), anchorTag.attr("href").trim())
-//                        }
+                Link(
+                    name = list.first().text().trim(),
+                    link = list[1].select("a").toList()
+                        .map { anchorTag ->
+                            Pair(anchorTag.text().trim(), anchorTag.attr("href").trim())
+                        }
                 )
             }
-        return Details(body = body)
     }
 
     override fun getHowToApplyDetails(document: Document): List<String>? {
@@ -187,3 +186,5 @@ class SarkariResultPostFetcher(
         }
     }
 }
+
+

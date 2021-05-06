@@ -23,11 +23,18 @@ data class Post(
     var ageLimit: Details? = null,
     var selectionProcess: List<String>? = null,
     var howToApply: List<String>? = null,
-    var importantLinks: Details? = null,
+    var importantLinks: List<Link>? = null,
     var others: Map<String, Details>? = null,
     @Indexed(unique = true)
     val source: String,
-    val createdAt: LocalDate = LocalDate.now()
+    val createdAt: LocalDate = LocalDate.now(),
+    val isVerified: Boolean = false,
+    val isUpdateAvailable: Boolean = false
+)
+
+data class Link(
+    val name: String,
+    val link: List<Pair<String, String>>
 )
 
 data class BasicDetails(

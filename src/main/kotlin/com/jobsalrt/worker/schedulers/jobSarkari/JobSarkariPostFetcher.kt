@@ -3,6 +3,7 @@ package com.jobsalrt.worker.schedulers.jobSarkari
 import com.jobsalrt.worker.domain.BasicDetails
 import com.jobsalrt.worker.domain.Details
 import com.jobsalrt.worker.domain.FormType
+import com.jobsalrt.worker.domain.Link
 import com.jobsalrt.worker.schedulers.PostFetcher
 import com.jobsalrt.worker.service.CommunicationService
 import com.jobsalrt.worker.service.PostService
@@ -42,13 +43,28 @@ class JobSarkariPostFetcher(
         return map
     }
 
-    override fun getImportantLinks(document: Document): Details? {
-        val regexPattern = "(download jobsarkari android app|join us on telegram|like our facebook page)"
-        val body = getImportantLinksTable(document)
-            ?.filter {
-                !it.first().contains(Regex(regexPattern, RegexOption.IGNORE_CASE))
-            } ?: return null
-        return Details(body = body)
+    override fun getImportantLinks(document: Document): List<Link>? {
+        val table = document.select(".job_card").find {
+            it.select("h2").text().contains(Regex("important link", RegexOption.IGNORE_CASE))
+        }
+            ?.select("tr")
+            ?.toList() ?: emptyList()
+
+        val endIndex = table.indexOfFirst {
+            it.select("td").text().contains(Regex("official website", RegexOption.IGNORE_CASE))
+        }.plus(1)
+
+        return table.subList(0, endIndex)
+            .map {
+                val list = it.select("td").toList()
+                Link(
+                    name = list.first().text().trim(),
+                    link = list[1].select("a").toList()
+                        .map { anchorTag ->
+                            Pair(anchorTag.text().trim(), anchorTag.attr("href").trim())
+                        }
+                )
+            }
     }
 
     override fun getHowToApplyDetails(document: Document): List<String>? {
@@ -164,19 +180,5 @@ class JobSarkariPostFetcher(
             it.contains(Regex(key, RegexOption.IGNORE_CASE))
         }
         return map[keyName]
-    }
-
-    private fun getImportantLinksTable(document: Document): List<List<String>>? {
-        return document.select(".job_card").find {
-            it.select("h2").text().contains(Regex("important link", RegexOption.IGNORE_CASE))
-        }
-            ?.select("tr")
-            ?.toList()
-            ?.map {
-                val list = it.select("td").toList()
-                val text = list.first().text()
-                val url = list[1]?.select("a")?.attr("href")?.trim() ?: ""
-                listOf(text, url)
-            }
     }
 }

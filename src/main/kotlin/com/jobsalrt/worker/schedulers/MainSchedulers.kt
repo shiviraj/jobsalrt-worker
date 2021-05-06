@@ -1,7 +1,6 @@
 package com.jobsalrt.worker.schedulers
 
 import com.jobsalrt.worker.domain.JobUrl
-import com.jobsalrt.worker.domain.Post
 import com.jobsalrt.worker.schedulers.jobSarkari.JobSarkariPostFetcher
 import com.jobsalrt.worker.schedulers.jobSarkari.JobSarkariUrlFetcher
 import com.jobsalrt.worker.schedulers.rojgarResult.RojgarResultPostFetcher
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.util.function.Tuple3
+import java.time.LocalDateTime
 
 @Component
 class MainSchedulers(
@@ -27,32 +27,35 @@ class MainSchedulers(
     @Autowired private val rojgarResultPostFetcher: RojgarResultPostFetcher,
     @Autowired private val sarkariResultPostFetcher: SarkariResultPostFetcher
 ) {
-    @Scheduled(cron = " 0/5 * * * * *")
+    @Scheduled(cron = "* 0,5 * * * *")
     @SchedulerLock(name = "MainSchedulers_start", lockAtLeastFor = "5m", lockAtMostFor = "5m")
     fun start() {
-//        val second = LocalDateTime.now().second
-//        if (second == 0)
-//        fetchUrls().subscribe()
-//        else
-        updatePosts().subscribe()
+        when {
+            LocalDateTime.now().minute == 0 -> fetchUrls().subscribe()
+            LocalDateTime.now().hour == 8 -> jobUrlService.deleteAll().subscribe()
+            else -> updatePosts().subscribe()
+        }
     }
 
-    private fun updatePosts(): Mono<Post> {
-        return jobUrlService.findByUrl("https://sarkariresults.info/2021/bihar-btsc-medical-officer.php")
-//        getAllNotFetched()
-//            .filter {
-//                it.url.contains(Regex("(sarkariresult)", RegexOption.IGNORE_CASE))
-//            }
+    private fun updatePosts(): Flux<JobUrl> {
+        return jobUrlService.getAllNotFetched()
             .flatMap {
-                sarkariResultPostFetcher.fetch(it)
-//            }.flatMap {
-//                jobUrlService.findByUrl(it.source)
-//                    .flatMap { jobUrl ->
-//                        jobUrl.isFetched = true
-//                        jobUrlService.save(jobUrl)
-//                    }
+                when {
+                    isContains(it, "jobsarkari.com") -> jobSarkariPostFetcher.fetch(it)
+                    isContains(it, "rojgarresult.com") -> rojgarResultPostFetcher.fetch(it)
+                    isContains(it, "sarkariresults.info") -> sarkariResultPostFetcher.fetch(it)
+                    else -> Mono.empty()
+                }
+            }.flatMap {
+                jobUrlService.findByUrl(it.source)
+                    .flatMap { jobUrl ->
+                        jobUrl.isFetched = true
+                        jobUrlService.save(jobUrl)
+                    }
             }
     }
+
+    private fun isContains(it: JobUrl, pattern: String) = it.url.contains(Regex(pattern, RegexOption.IGNORE_CASE))
 
     private fun fetchUrls(): Flux<Tuple3<JobUrl, JobUrl, JobUrl>> {
         return Flux.zip(

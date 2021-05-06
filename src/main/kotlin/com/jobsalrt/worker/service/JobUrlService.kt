@@ -18,11 +18,11 @@ class JobUrlService(@Autowired private val jobUrlRepository: JobUrlRepository) {
         return jobUrlRepository.findAllNotFetched()
     }
 
-    fun findById(id: String): Mono<JobUrl> {
-        return jobUrlRepository.findById(id)
-    }
-
     fun findByUrl(url: String): Mono<JobUrl> {
         return jobUrlRepository.findByUrl(url)
+    }
+
+    fun deleteAll(): Mono<Void> {
+        return jobUrlRepository.deleteAll()
     }
 }
