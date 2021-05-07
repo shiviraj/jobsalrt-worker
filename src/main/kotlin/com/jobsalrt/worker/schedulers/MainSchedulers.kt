@@ -10,6 +10,7 @@ import com.jobsalrt.worker.schedulers.sarkariResult.SarkariResultUrlFetcher
 import com.jobsalrt.worker.service.JobUrlService
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -27,12 +28,24 @@ class MainSchedulers(
     @Autowired private val rojgarResultPostFetcher: RojgarResultPostFetcher,
     @Autowired private val sarkariResultPostFetcher: SarkariResultPostFetcher
 ) {
-    @Scheduled(cron = "* 0/30 * * * *")
+    @Scheduled(cron = "0 0/30 * * * *")
     @SchedulerLock(name = "MainSchedulers_start", lockAtLeastFor = "5m", lockAtMostFor = "5m")
     fun start() {
         if (LocalDateTime.now().hour == 8) jobUrlService.deleteAll().subscribe()
-        fetchUrls().subscribe()
-        updatePosts().subscribe()
+        if (LocalDateTime.now().minute == 0)
+            fetchUrls()
+                .onErrorResume {
+                    if (it is DuplicateKeyException)
+                        Flux.empty()
+                    else throw it
+                }.subscribe()
+        else
+            updatePosts()
+                .onErrorResume {
+                    if (it is DuplicateKeyException)
+                        Flux.empty()
+                    else throw it
+                }.subscribe()
     }
 
     private fun updatePosts(): Flux<JobUrl> {
