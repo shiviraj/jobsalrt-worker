@@ -33,15 +33,22 @@ abstract class PostFetcher(
                         updateRawPostIfAvailable(document, it)
                     }
                     .switchIfEmpty(
-                        Mono.just(document)
-                            .flatMap {
-                                val post = createPost(Post(source = jobUrl.url), document)
-                                postService.save(post)
-                            }
-                            .flatMap {
-                                rawPostService.save(RawPost(html = parseHtml(document), source = jobUrl.url))
-                            }
+                        addPostAndRawPost(document, jobUrl)
                     )
+            }.onErrorResume {
+                Mono.empty()
+            }
+    }
+
+    @Transactional
+    fun addPostAndRawPost(document: Document, jobUrl: JobUrl): Mono<RawPost> {
+        return Mono.just(document)
+            .flatMap {
+                val post = createPost(Post(source = jobUrl.url), document)
+                postService.save(post)
+            }
+            .flatMap {
+                rawPostService.save(RawPost(html = parseHtml(document), source = jobUrl.url))
             }
     }
 
@@ -66,18 +73,23 @@ abstract class PostFetcher(
     abstract fun parseHtml(document: Document): String
 
     private fun createPost(post: Post, document: Document): Post {
-        val errorStacks = mutableListOf<String>()
-        updateDetails("Basic Details", errorStacks) { post.basicDetails = getBasicDetails(document) }
-        updateDetails("Dates", errorStacks) { post.dates = getDates(document) }
-        updateDetails("Fee details", errorStacks) { post.feeDetails = getFeeDetails(document) }
-        updateDetails("Vacancy Details", errorStacks) { post.vacancyDetails = getVacancyDetails(document) }
-        updateDetails("Age Limit Details", errorStacks) { post.ageLimit = getAgeLimitDetails(document) }
-        updateDetails("Selection Process", errorStacks) { post.selectionProcess = getSelectionProcessDetails(document) }
-        updateDetails("How to Apply", errorStacks) { post.howToApply = getHowToApplyDetails(document) }
-        updateDetails("Important Links", errorStacks) { post.importantLinks = getImportantLinks(document) }
-        updateDetails("Other Details", errorStacks) { post.others = getOtherDetails(document) }
-        sendFailureNotification(errorStacks, post)
-        post.failures = errorStacks
+        try {
+            val errorStacks = mutableListOf<String>()
+            updateDetails("Basic Details", errorStacks) { post.basicDetails = getBasicDetails(document) }
+            updateDetails("Dates", errorStacks) { post.dates = getDates(document) }
+            updateDetails("Fee details", errorStacks) { post.feeDetails = getFeeDetails(document) }
+            updateDetails("Vacancy Details", errorStacks) { post.vacancyDetails = getVacancyDetails(document) }
+            updateDetails("Age Limit Details", errorStacks) { post.ageLimit = getAgeLimitDetails(document) }
+            updateDetails("Selection Process", errorStacks) {
+                post.selectionProcess = getSelectionProcessDetails(document)
+            }
+            updateDetails("How to Apply", errorStacks) { post.howToApply = getHowToApplyDetails(document) }
+            updateDetails("Important Links", errorStacks) { post.importantLinks = getImportantLinks(document) }
+            updateDetails("Other Details", errorStacks) { post.others = getOtherDetails(document) }
+            sendFailureNotification(errorStacks, post)
+            post.failures = errorStacks
+        } catch (e: Exception) {
+        }
         return post
     }
 

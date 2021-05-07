@@ -10,7 +10,6 @@ import com.jobsalrt.worker.schedulers.sarkariResult.SarkariResultUrlFetcher
 import com.jobsalrt.worker.service.JobUrlService
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.dao.DuplicateKeyException
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -31,33 +30,25 @@ class MainSchedulers(
     @Scheduled(cron = "0 0/30 * * * *")
     @SchedulerLock(name = "MainSchedulers_start", lockAtLeastFor = "5m", lockAtMostFor = "5m")
     fun start() {
-        if (LocalDateTime.now().hour == 8) jobUrlService.deleteAll().subscribe()
+        if (LocalDateTime.now().hour == 8)
+            jobUrlService.deleteAll().block()
         if (LocalDateTime.now().minute == 0)
-            fetchUrls()
-                .onErrorResume {
-                    if (it is DuplicateKeyException)
-                        Flux.empty()
-                    else throw it
-                }.subscribe()
+            fetchUrls().blockLast()
         else
-            updatePosts()
-                .onErrorResume {
-                    if (it is DuplicateKeyException)
-                        Flux.empty()
-                    else throw it
-                }.subscribe()
+            updatePosts().blockLast()
+
     }
 
     private fun updatePosts(): Flux<JobUrl> {
         return jobUrlService.getAllNotFetched()
-            .flatMap {
+            .flatMapSequential {
                 when {
                     isContains(it, "jobsarkari.com") -> jobSarkariPostFetcher.fetch(it)
                     isContains(it, "rojgarresult.com") -> rojgarResultPostFetcher.fetch(it)
                     isContains(it, "sarkariresults.info") -> sarkariResultPostFetcher.fetch(it)
                     else -> Mono.empty()
                 }
-            }.flatMap {
+            }.flatMapSequential {
                 jobUrlService.findByUrl(it.source)
                     .flatMap { jobUrl ->
                         jobUrl.isFetched = true
