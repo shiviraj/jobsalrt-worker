@@ -7,6 +7,7 @@ import com.jobsalrt.worker.schedulers.rojgarResult.RojgarResultPostFetcher
 import com.jobsalrt.worker.schedulers.rojgarResult.RojgarResultUrlFetcher
 import com.jobsalrt.worker.schedulers.sarkariResult.SarkariResultPostFetcher
 import com.jobsalrt.worker.schedulers.sarkariResult.SarkariResultUrlFetcher
+import com.jobsalrt.worker.service.BlockedJobUrlService
 import com.jobsalrt.worker.service.JobUrlService
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,7 +26,8 @@ class MainSchedulers(
     @Autowired private val sarkariResultUrlFetcher: SarkariResultUrlFetcher,
     @Autowired private val jobSarkariPostFetcher: JobSarkariPostFetcher,
     @Autowired private val rojgarResultPostFetcher: RojgarResultPostFetcher,
-    @Autowired private val sarkariResultPostFetcher: SarkariResultPostFetcher
+    @Autowired private val sarkariResultPostFetcher: SarkariResultPostFetcher,
+    @Autowired private val blockedJobUrlService: BlockedJobUrlService
 ) {
     @Scheduled(cron = "0 0/30 * * * *")
     @SchedulerLock(name = "MainSchedulers_start", lockAtLeastFor = "5m", lockAtMostFor = "5m")
@@ -40,7 +42,11 @@ class MainSchedulers(
     }
 
     private fun updatePosts(): Flux<JobUrl> {
+        val blockedJobUrls = blockedJobUrlService.getAll().collectList().block() ?: emptyList()
         return jobUrlService.getAllNotFetched()
+            .filter { jobUrl ->
+                !blockedJobUrls.any { it.url == jobUrl.url }
+            }
             .flatMapSequential {
                 when {
                     isContains(it, "jobsarkari.com") -> jobSarkariPostFetcher.fetch(it)
