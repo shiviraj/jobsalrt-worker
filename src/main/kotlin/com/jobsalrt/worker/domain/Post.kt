@@ -29,7 +29,8 @@ data class Post(
     val source: String,
     val createdAt: LocalDate = LocalDate.now(),
     val isVerified: Boolean = false,
-    var isUpdateAvailable: Boolean = false
+    var isUpdateAvailable: Boolean = false,
+    var failures: List<String> = emptyList()
 ) {
     @LastModifiedDate
     lateinit var postUpdateDate: LocalDate

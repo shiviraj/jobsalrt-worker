@@ -77,6 +77,7 @@ abstract class PostFetcher(
         updateDetails("Important Links", errorStacks) { post.importantLinks = getImportantLinks(document) }
         updateDetails("Other Details", errorStacks) { post.others = getOtherDetails(document) }
         sendFailureNotification(errorStacks, post)
+        post.failures = errorStacks
         return post
     }
 
@@ -89,7 +90,7 @@ abstract class PostFetcher(
         try {
             function()
         } catch (e: Exception) {
-            errorStacks.add("Failed to update $errorMessage")
+            errorStacks.add(errorMessage)
             println("Failed to update $errorMessage")
         }
     }
