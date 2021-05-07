@@ -27,14 +27,12 @@ class MainSchedulers(
     @Autowired private val rojgarResultPostFetcher: RojgarResultPostFetcher,
     @Autowired private val sarkariResultPostFetcher: SarkariResultPostFetcher
 ) {
-    @Scheduled(cron = "* 0,5 * * * *")
+    @Scheduled(cron = "* 0/30 * * * *")
     @SchedulerLock(name = "MainSchedulers_start", lockAtLeastFor = "5m", lockAtMostFor = "5m")
     fun start() {
-        when {
-            LocalDateTime.now().minute == 0 -> fetchUrls().subscribe()
-            LocalDateTime.now().hour == 8 -> jobUrlService.deleteAll().subscribe()
-            else -> updatePosts().subscribe()
-        }
+        if (LocalDateTime.now().hour == 8) jobUrlService.deleteAll().subscribe()
+        fetchUrls().subscribe()
+        updatePosts().subscribe()
     }
 
     private fun updatePosts(): Flux<JobUrl> {
