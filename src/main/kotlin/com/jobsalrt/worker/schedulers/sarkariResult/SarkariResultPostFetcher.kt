@@ -7,6 +7,7 @@ import com.jobsalrt.worker.domain.Link
 import com.jobsalrt.worker.schedulers.PostFetcher
 import com.jobsalrt.worker.service.CommunicationService
 import com.jobsalrt.worker.service.PostService
+import com.jobsalrt.worker.service.RawPostService
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -17,8 +18,13 @@ import org.springframework.stereotype.Service
 class SarkariResultPostFetcher(
     @Autowired webClientWrapper: WebClientWrapper,
     @Autowired postService: PostService,
-    @Autowired communicationService: CommunicationService
-) : PostFetcher(webClientWrapper, postService, communicationService) {
+    @Autowired communicationService: CommunicationService,
+    @Autowired rawPostService: RawPostService
+) : PostFetcher(webClientWrapper, postService, communicationService, rawPostService) {
+    override fun parseHtml(document: Document): String {
+        return findMainTable(document).toString()
+    }
+
     override fun getOtherDetails(document: Document): Map<String, Details>? {
         val tableData = findMainTable(document).select("tr").toList()
 

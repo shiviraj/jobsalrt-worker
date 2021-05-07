@@ -7,6 +7,7 @@ import com.jobsalrt.worker.domain.Link
 import com.jobsalrt.worker.schedulers.PostFetcher
 import com.jobsalrt.worker.service.CommunicationService
 import com.jobsalrt.worker.service.PostService
+import com.jobsalrt.worker.service.RawPostService
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -17,9 +18,13 @@ import org.springframework.stereotype.Service
 class RojgarResultPostFetcher(
     @Autowired webClientWrapper: WebClientWrapper,
     @Autowired postService: PostService,
-    @Autowired communicationService: CommunicationService
+    @Autowired communicationService: CommunicationService,
+    @Autowired rawPostService: RawPostService
 ) :
-    PostFetcher(webClientWrapper, postService, communicationService) {
+    PostFetcher(webClientWrapper, postService, communicationService, rawPostService) {
+    override fun parseHtml(document: Document): String {
+        return getMainTable(document).toString()
+    }
 
     override fun getOtherDetails(document: Document): Map<String, Details> {
         val tableData = document.select("#table").select("tr").toList()
@@ -71,7 +76,11 @@ class RojgarResultPostFetcher(
     }
 
     override fun getHowToApplyDetails(document: Document): List<String>? {
-        return null
+        return findTableData(document, "how to apply")
+            ?.select("li")
+            ?.map {
+                it.text().trim()
+            }
     }
 
     override fun getSelectionProcessDetails(document: Document): List<String>? {

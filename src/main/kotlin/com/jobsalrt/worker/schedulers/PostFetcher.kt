@@ -3,40 +3,70 @@ package com.jobsalrt.worker.schedulers
 import com.jobsalrt.worker.domain.*
 import com.jobsalrt.worker.service.CommunicationService
 import com.jobsalrt.worker.service.PostService
+import com.jobsalrt.worker.service.RawPostService
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.springframework.dao.DuplicateKeyException
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 
+@Service
 abstract class PostFetcher(
     private val webClientWrapper: WebClientWrapper,
     private val postService: PostService,
-    private val communicationService: CommunicationService
+    private val communicationService: CommunicationService,
+    private val rawPostService: RawPostService
 ) {
-    fun fetch(jobUrl: JobUrl): Mono<Post> {
+    fun fetch(jobUrl: JobUrl): Mono<RawPost> {
         return webClientWrapper.get(
             baseUrl = jobUrl.url,
             path = "",
             returnType = String::class.java,
         )
             .map {
-                val post = Post(source = jobUrl.url)
-                updatePost(post, it)
+                Jsoup.parse(it)
             }
-            .flatMap {
-                postService.save(it)
-            }
-            .onErrorResume {
-                if (it is DuplicateKeyException)
-                    Mono.empty()
-                else throw it
+            .flatMap { document ->
+                rawPostService.findBySource(jobUrl.url)
+                    .flatMap {
+                        updateRawPostIfAvailable(document, it)
+                    }
+                    .switchIfEmpty(
+                        Mono.just(document)
+                            .flatMap {
+                                val post = createPost(Post(source = jobUrl.url), document)
+                                postService.save(post)
+                            }
+                            .flatMap {
+                                rawPostService.save(RawPost(html = parseHtml(document), source = jobUrl.url))
+                            }
+                    )
             }
     }
 
-    private fun updatePost(post: Post, htmlString: String): Post {
+    @Transactional
+    fun updateRawPostIfAvailable(document: Document, rawPost: RawPost): Mono<RawPost> {
+        val html = parseHtml(document)
+        return if (rawPost.html != html) {
+            postService.findBySource(rawPost.source)
+                .flatMap {
+                    it.isUpdateAvailable = true
+                    postService.save(it)
+                }
+                .flatMap {
+                    rawPost.html = html
+                    rawPostService.save(rawPost)
+                }
+        } else {
+            Mono.just(rawPost)
+        }
+    }
+
+    abstract fun parseHtml(document: Document): String
+
+    private fun createPost(post: Post, document: Document): Post {
         val errorStacks = mutableListOf<String>()
-        val document = Jsoup.parse(htmlString)
         updateDetails("Basic Details", errorStacks) { post.basicDetails = getBasicDetails(document) }
         updateDetails("Dates", errorStacks) { post.dates = getDates(document) }
         updateDetails("Fee details", errorStacks) { post.feeDetails = getFeeDetails(document) }

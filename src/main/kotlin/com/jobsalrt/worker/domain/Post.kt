@@ -2,6 +2,7 @@ package com.jobsalrt.worker.domain
 
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.annotation.TypeAlias
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
@@ -16,7 +17,6 @@ data class Post(
     var id: ObjectId? = null,
     var basicDetails: BasicDetails? = null,
     var statuses: List<Status> = emptyList(),
-    var postUpdateDate: LocalDate = LocalDate.now(),
     var dates: Details? = null,
     var feeDetails: Details? = null,
     var vacancyDetails: Details? = null,
@@ -29,8 +29,11 @@ data class Post(
     val source: String,
     val createdAt: LocalDate = LocalDate.now(),
     val isVerified: Boolean = false,
-    val isUpdateAvailable: Boolean = false
-)
+    var isUpdateAvailable: Boolean = false
+) {
+    @LastModifiedDate
+    lateinit var postUpdateDate: LocalDate
+}
 
 data class Link(
     val name: String,

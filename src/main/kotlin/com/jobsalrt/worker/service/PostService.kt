@@ -11,4 +11,8 @@ class PostService(@Autowired private val postRepository: PostRepository) {
     fun save(post: Post): Mono<Post> {
         return postRepository.save(post)
     }
+
+    fun findBySource(source: String): Mono<Post> {
+        return postRepository.findBySource(source)
+    }
 }
