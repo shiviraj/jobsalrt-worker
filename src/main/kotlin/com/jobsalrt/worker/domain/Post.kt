@@ -30,7 +30,8 @@ data class Post(
     val createdAt: LocalDate = LocalDate.now(),
     val isVerified: Boolean = false,
     var isUpdateAvailable: Boolean = false,
-    var failures: List<String> = emptyList()
+    var failures: List<String> = emptyList(),
+    var totalViews: Long = 0
 ) {
     @LastModifiedDate
     lateinit var postUpdateDate: LocalDate
@@ -49,7 +50,9 @@ data class BasicDetails(
     val totalVacancies: Long? = null,
     val location: String? = null,
     val company: String? = null,
-    val qualification: String? = null
+    val qualification: String? = null,
+    val ageLimit: Pair<LocalDate, LocalDate>? = null,
+    val postLogo: String = ""
 )
 
 data class Status(
