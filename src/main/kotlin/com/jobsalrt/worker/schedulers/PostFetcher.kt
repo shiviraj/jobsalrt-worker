@@ -40,7 +40,7 @@ abstract class PostFetcher(
             }
     }
 
-    @Transactional
+    @Transactional(rollbackForClassName = ["Exception"])
     fun addPostAndRawPost(document: Document, jobUrl: JobUrl): Mono<RawPost> {
         return Mono.just(document)
             .flatMap {
@@ -52,7 +52,7 @@ abstract class PostFetcher(
             }
     }
 
-    @Transactional
+    @Transactional(rollbackForClassName = ["Exception"])
     fun updateRawPostIfAvailable(document: Document, rawPost: RawPost): Mono<RawPost> {
         val html = parseHtml(document)
         return if (rawPost.html != html) {
