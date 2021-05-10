@@ -34,7 +34,7 @@ data class Post(
     var totalViews: Long = 0
 ) {
     @LastModifiedDate
-    lateinit var postUpdateDate: LocalDate
+    var postUpdateDate: LocalDate = LocalDate.now()
 }
 
 data class Link(
@@ -53,7 +53,9 @@ data class BasicDetails(
     val qualification: String? = null,
     val ageLimit: Pair<LocalDate, LocalDate>? = null,
     val postLogo: String = ""
-)
+) {
+    val url: String = name.replace(" ", "-").toLowerCase()
+}
 
 data class Status(
     val type: Type,
