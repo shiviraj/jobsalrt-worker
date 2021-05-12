@@ -20,7 +20,7 @@ class WebSecurityConfig(
     override fun configure(http: HttpSecurity) {
         http.csrf().disable().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and().authorizeRequests()
-            .antMatchers(HttpMethod.GET, "/awake").permitAll()
+            .antMatchers(HttpMethod.GET, "/awake/*/*").permitAll()
             .antMatchers(HttpMethod.POST, "/admin/sign-in").permitAll()
             .anyRequest().authenticated()
 

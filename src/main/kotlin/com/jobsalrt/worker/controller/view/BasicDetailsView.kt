@@ -2,12 +2,13 @@ package com.jobsalrt.worker.controller.view
 
 import com.jobsalrt.worker.domain.FormType
 import com.jobsalrt.worker.domain.Post
+import com.jobsalrt.worker.domain.Status
 import java.time.LocalDate
 
 
 data class BasicDetailsView(
     val name: String,
-    val formTye: FormType,
+    val formType: FormType? = FormType.ONLINE,
     val advtNo: String? = null,
     val lastDate: LocalDate? = null,
     val totalVacancies: Long? = null,
@@ -20,7 +21,7 @@ data class BasicDetailsView(
     val createdAt: LocalDate,
     val postUpdateDate: LocalDate,
     val source: String,
-    val isVerified: Boolean,
+    val status: Status,
     val isUpdateAvailable: Boolean,
     val totalViews: Long
 ) {
@@ -29,7 +30,7 @@ data class BasicDetailsView(
             val basicDetails = post.basicDetails
             return BasicDetailsView(
                 name = basicDetails?.name ?: "",
-                formTye = basicDetails?.formTye ?: FormType.ONLINE,
+                formType = basicDetails?.formType ?: FormType.ONLINE,
                 advtNo = basicDetails?.advtNo,
                 lastDate = basicDetails?.lastDate,
                 totalVacancies = basicDetails?.totalVacancies,
@@ -41,9 +42,9 @@ data class BasicDetailsView(
                 url = basicDetails?.url ?: "",
                 createdAt = post.createdAt,
                 postUpdateDate = post.postUpdateDate,
-                source = post.source,
-                isVerified = post.isVerified,
                 isUpdateAvailable = post.isUpdateAvailable,
+                source = post.source,
+                status = post.status,
                 totalViews = post.totalViews
             )
         }

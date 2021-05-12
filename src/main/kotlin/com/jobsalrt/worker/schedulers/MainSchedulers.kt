@@ -38,7 +38,6 @@ class MainSchedulers(
             fetchUrls().blockLast()
         else
             updatePosts().blockLast()
-
     }
 
     private fun updatePosts(): Flux<JobUrl> {

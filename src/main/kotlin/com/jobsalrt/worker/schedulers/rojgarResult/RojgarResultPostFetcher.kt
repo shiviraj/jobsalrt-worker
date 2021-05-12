@@ -119,7 +119,7 @@ class RojgarResultPostFetcher(
 
         return BasicDetails(
             name = name,
-            formTye = FormType.ONLINE,
+            formType = FormType.ONLINE,
             advtNo = advtNo,
             totalVacancies = totalPost.toLong(),
         )

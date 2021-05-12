@@ -125,7 +125,7 @@ class SarkariResultPostFetcher(
         val companyName = findMainTable(document).select("tr").toList().first()
             .select("h2").text().trim()
         val name = document.select("h1").text().trim()
-        return BasicDetails(name = name, formTye = FormType.ONLINE, company = companyName)
+        return BasicDetails(name = name, formType = FormType.ONLINE, company = companyName)
     }
 
     private fun createDetailsFromList(document: Document, regexPattern: String): Details? {

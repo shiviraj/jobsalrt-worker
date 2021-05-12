@@ -1,15 +1,20 @@
 package com.jobsalrt.worker.service
 
-import com.jobsalrt.worker.domain.FormType
+import com.jobsalrt.worker.controller.view.FilterRequest
 import com.jobsalrt.worker.domain.Post
 import com.jobsalrt.worker.repository.PostRepository
+import com.jobsalrt.worker.repository.PostRepositoryOps
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-import java.time.LocalDate
 
 @Service
-class PostService(@Autowired private val postRepository: PostRepository) {
+class PostService(
+    @Autowired private val postRepository: PostRepository,
+    @Autowired private val postRepositoryOps: PostRepositoryOps
+) {
+    private val LIMIT = 48
+
     fun save(post: Post): Mono<Post> {
         return postRepository.save(post)
     }
@@ -18,12 +23,11 @@ class PostService(@Autowired private val postRepository: PostRepository) {
         return postRepository.findBySource(source)
     }
 
-    fun getAllPosts(page: String): Mono<List<Post>> {
-        val start = (page.toInt() - 1) * 50
-        return postRepository.findAll()
-            .collectList()
-            .map {
-                it.subList(start, start + 50)
-            }
+    fun getAllPosts(page: Int, filterRequest: FilterRequest): Mono<List<Post>> {
+        return postRepositoryOps.findPosts(filterRequest, page).collectList()
+    }
+
+    fun getPostsPageCount(filterRequest: FilterRequest): Mono<Pair<Long, Double>> {
+        return postRepositoryOps.findPostCount(filterRequest)
     }
 }

@@ -16,7 +16,7 @@ data class Post(
     @Id
     var id: ObjectId? = null,
     var basicDetails: BasicDetails? = null,
-    var statuses: List<Status> = emptyList(),
+    var states: List<State> = emptyList(),
     var dates: Details? = null,
     var feeDetails: Details? = null,
     var vacancyDetails: Details? = null,
@@ -28,8 +28,9 @@ data class Post(
     @Indexed(unique = true)
     val source: String,
     val createdAt: LocalDate = LocalDate.now(),
-    val isVerified: Boolean = false,
+    val status: Status = Status.NOT_VERIFIED,
     var isUpdateAvailable: Boolean = false,
+    val otherSource: String? = null,
     var failures: List<String> = emptyList(),
     var totalViews: Long = 0
 ) {
@@ -44,7 +45,7 @@ data class Link(
 
 data class BasicDetails(
     val name: String,
-    val formTye: FormType,
+    var formType: FormType? = null,
     val advtNo: String? = null,
     val lastDate: LocalDate? = null,
     val totalVacancies: Long? = null,
@@ -52,12 +53,11 @@ data class BasicDetails(
     val company: String? = null,
     val qualification: String? = null,
     val ageLimit: Pair<LocalDate, LocalDate>? = null,
-    val postLogo: String = ""
-) {
-    val url: String = name.replace(" ", "-").toLowerCase()
-}
+    val postLogo: String = "",
+    var url: String? = null
+)
 
-data class Status(
+data class State(
     val type: Type,
     val createdAt: LocalDate = LocalDate.now()
 )
@@ -83,4 +83,10 @@ enum class Type {
     RESULT,
     SYLLABUS,
     ANSWER_KEY
+}
+
+enum class Status {
+    NOT_VERIFIED,
+    DISABLED,
+    VERIFIED
 }

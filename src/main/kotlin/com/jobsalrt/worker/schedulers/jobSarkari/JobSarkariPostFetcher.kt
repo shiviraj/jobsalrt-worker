@@ -115,7 +115,7 @@ class JobSarkariPostFetcher(
         val map = createBasicDetailsMap(document)
         return BasicDetails(
             name = document.select("h1").text().trim(),
-            formTye = FormType.of(findValueFromKeyRegex(map, "form type") ?: ""),
+            formType = FormType.of(findValueFromKeyRegex(map, "form type") ?: ""),
             location = findValueFromKeyRegex(map, "location"),
             company = findValueFromKeyRegex(map, "company"),
             qualification = findValueFromKeyRegex(map, "qualification"),
