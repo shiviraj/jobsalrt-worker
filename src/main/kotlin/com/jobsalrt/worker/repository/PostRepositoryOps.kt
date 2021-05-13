@@ -2,10 +2,12 @@ package com.jobsalrt.worker.repository
 
 import com.jobsalrt.worker.controller.view.FilterRequest
 import com.jobsalrt.worker.domain.Post
+import org.bson.Document
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -17,7 +19,7 @@ class PostRepositoryOps(
 ) {
     private val limit = 48
     fun findPosts(filterRequest: FilterRequest, page: Int): Flux<Post> {
-        val query = createQuery(filterRequest)
+        val query = createQueryWithFilter(filterRequest)
             .skip(((page - 1) * limit).toLong())
             .limit(limit)
         val fields = listOf("basicDetails", "source", "createdAt", "status", "postUpdateDate", "source", "totalViews")
@@ -26,12 +28,11 @@ class PostRepositoryOps(
     }
 
     fun findPostCount(filterRequest: FilterRequest): Mono<Pair<Long, Double>> {
-        return mongoOperations.count(createQuery(filterRequest), Post::class.java)
+        return mongoOperations.count(createQueryWithFilter(filterRequest), Post::class.java)
             .map { Pair(it, ceil(it.toDouble() / limit)) }
-
     }
 
-    private fun createQuery(filterRequest: FilterRequest): Query {
+    private fun createQueryWithFilter(filterRequest: FilterRequest): Query {
         val query = Query()
         if (filterRequest.status.isNotEmpty()) query.addCriteria(Criteria.where("status").`in`(filterRequest.status))
         if (filterRequest.formType.isNotEmpty()) query.addCriteria(

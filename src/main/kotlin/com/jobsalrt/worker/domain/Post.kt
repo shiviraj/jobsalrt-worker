@@ -52,7 +52,8 @@ data class BasicDetails(
     val location: String? = null,
     val company: String? = null,
     val qualification: String? = null,
-    val ageLimit: Pair<LocalDate, LocalDate>? = null,
+    val minAgeLimit: LocalDate? = null,
+    val maxAgeLimit: LocalDate? = null,
     val postLogo: String = "",
     var url: String? = null
 )

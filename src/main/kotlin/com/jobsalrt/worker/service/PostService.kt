@@ -13,7 +13,6 @@ class PostService(
     @Autowired private val postRepository: PostRepository,
     @Autowired private val postRepositoryOps: PostRepositoryOps
 ) {
-    private val LIMIT = 48
 
     fun save(post: Post): Mono<Post> {
         return postRepository.save(post)
@@ -29,5 +28,18 @@ class PostService(
 
     fun getPostsPageCount(filterRequest: FilterRequest): Mono<Pair<Long, Double>> {
         return postRepositoryOps.findPostCount(filterRequest)
+    }
+
+    fun getPostByUrl(url: String): Mono<Post> {
+        return postRepository.findByBasicDetailsUrl(url)
+
+    }
+
+    fun updatePost(url: String, post: Post): Mono<Post> {
+        return postRepository.findByBasicDetailsUrl(url)
+            .flatMap {
+                post.id = it.id
+                save(post)
+            }
     }
 }

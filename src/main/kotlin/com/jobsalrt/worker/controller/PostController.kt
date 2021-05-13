@@ -3,6 +3,7 @@ package com.jobsalrt.worker.controller
 import com.jobsalrt.worker.controller.view.BasicDetailsView
 import com.jobsalrt.worker.controller.view.FilterRequest
 import com.jobsalrt.worker.controller.view.PageCountView
+import com.jobsalrt.worker.domain.Post
 import com.jobsalrt.worker.service.PostService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
@@ -10,7 +11,8 @@ import reactor.core.publisher.Mono
 
 
 @RestController
-class Controller(
+@RequestMapping("/posts")
+class PostController(
     @Autowired val postService: PostService
 ) {
     @GetMapping("/awake")
@@ -18,7 +20,7 @@ class Controller(
         return Mono.empty()
     }
 
-    @PostMapping("/posts/page/{page}")
+    @PostMapping("/page/{page}")
     fun getAllPosts(@PathVariable page: Int, @RequestBody filterRequest: FilterRequest): Mono<List<BasicDetailsView>> {
         return postService.getAllPosts(page, filterRequest)
             .map { posts ->
@@ -28,12 +30,22 @@ class Controller(
             }
     }
 
-    @PostMapping("/posts/pageCount")
+    @PostMapping("/page-count")
     fun getPostsPageCount(@RequestBody filterRequest: FilterRequest): Mono<PageCountView> {
         return postService.getPostsPageCount(filterRequest)
             .map {
                 PageCountView(page = it.second.toLong(), totalPost = it.first)
             }
+    }
+
+    @GetMapping("/{url}")
+    fun getPostByUrl(@PathVariable url: String): Mono<Post> {
+        return postService.getPostByUrl(url)
+    }
+
+    @PutMapping("/{url}")
+    fun updatePost(@PathVariable url: String, @RequestBody post: Post): Mono<Post> {
+        return postService.updatePost(url, post)
     }
 }
 
