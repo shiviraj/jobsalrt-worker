@@ -3,7 +3,6 @@ package com.jobsalrt.worker.schedulers.jobSarkari
 import com.jobsalrt.worker.domain.BasicDetails
 import com.jobsalrt.worker.domain.Details
 import com.jobsalrt.worker.domain.FormType
-import com.jobsalrt.worker.domain.Link
 import com.jobsalrt.worker.schedulers.PostFetcher
 import com.jobsalrt.worker.service.CommunicationService
 import com.jobsalrt.worker.service.PostService
@@ -48,7 +47,7 @@ class JobSarkariPostFetcher(
         return map
     }
 
-    override fun getImportantLinks(document: Document): List<Link>? {
+    override fun getImportantLinks(document: Document): Details? {
         val table = document.select(".job_card").find {
             it.select("h2").text().contains(Regex("important link", RegexOption.IGNORE_CASE))
         }
@@ -59,17 +58,7 @@ class JobSarkariPostFetcher(
             it.select("td").text().contains(Regex("official website", RegexOption.IGNORE_CASE))
         }.plus(1)
 
-        return table.subList(0, endIndex)
-            .map {
-                val list = it.select("td").toList()
-                Link(
-                    name = list.first().text().trim(),
-                    link = list[1].select("a").toList()
-                        .map { anchorTag ->
-                            Pair(anchorTag.text().trim(), anchorTag.attr("href").trim())
-                        }
-                )
-            }
+        return parseImportantLinks(table.subList(0, endIndex))
     }
 
     override fun getHowToApplyDetails(document: Document): List<String>? {

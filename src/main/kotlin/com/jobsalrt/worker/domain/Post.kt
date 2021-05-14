@@ -2,7 +2,6 @@ package com.jobsalrt.worker.domain
 
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.annotation.TypeAlias
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
@@ -23,7 +22,7 @@ data class Post(
     var ageLimit: Details? = null,
     var selectionProcess: List<String>? = null,
     var howToApply: List<String>? = null,
-    var importantLinks: List<Link>? = null,
+    var importantLinks: Details? = null,
     var others: Map<String, Details>? = null,
     @Indexed(unique = true)
     val source: String,
@@ -34,7 +33,6 @@ data class Post(
     var failures: List<String> = emptyList(),
     var totalViews: Long = 0
 ) {
-    @LastModifiedDate
     var postUpdateDate: LocalDate = LocalDate.now()
 }
 

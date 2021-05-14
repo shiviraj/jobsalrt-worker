@@ -3,7 +3,6 @@ package com.jobsalrt.worker.schedulers.rojgarResult
 import com.jobsalrt.worker.domain.BasicDetails
 import com.jobsalrt.worker.domain.Details
 import com.jobsalrt.worker.domain.FormType
-import com.jobsalrt.worker.domain.Link
 import com.jobsalrt.worker.schedulers.PostFetcher
 import com.jobsalrt.worker.service.CommunicationService
 import com.jobsalrt.worker.service.PostService
@@ -51,7 +50,7 @@ class RojgarResultPostFetcher(
         return map
     }
 
-    override fun getImportantLinks(document: Document): List<Link>? {
+    override fun getImportantLinks(document: Document): Details {
         val tableData = getMainTable(document)?.select("tr")?.toList() ?: emptyList()
 
         val startIndex = tableData.indexOfFirst {
@@ -62,17 +61,7 @@ class RojgarResultPostFetcher(
             it.select("td").select("h2").text().contains(Regex("official website", RegexOption.IGNORE_CASE))
         } + startIndex + 2
 
-        return tableData.subList(startIndex + 1, endIndex)
-            .map {
-                val list = it.select("td").toList()
-                Link(
-                    list.first().text().trim(),
-                    link = list[1].select("a").toList()
-                        .map { anchorTag ->
-                            Pair(anchorTag.text().trim(), anchorTag.attr("href").trim())
-                        }
-                )
-            }
+        return parseImportantLinks(tableData.subList(startIndex + 1, endIndex))
     }
 
     override fun getHowToApplyDetails(document: Document): List<String>? {

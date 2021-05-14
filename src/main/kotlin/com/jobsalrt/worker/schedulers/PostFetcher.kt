@@ -7,6 +7,7 @@ import com.jobsalrt.worker.service.RawPostService
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
@@ -109,7 +110,7 @@ abstract class PostFetcher(
 
     abstract fun getOtherDetails(document: Document): Map<String, Details>?
 
-    abstract fun getImportantLinks(document: Document): List<Link>?
+    abstract fun getImportantLinks(document: Document): Details?
 
     abstract fun getHowToApplyDetails(document: Document): List<String>?
 
@@ -124,4 +125,22 @@ abstract class PostFetcher(
     abstract fun getDates(document: Document): Details?
 
     abstract fun getBasicDetails(document: Document): BasicDetails?
+
+    fun parseImportantLinks(rows: List<Element>): Details {
+        val body = mutableListOf<List<String>>()
+
+        rows.map {
+            val list = it.select("td").toList()
+            val name = list.first().text().trim()
+            val anchorTags = list[1].select("a").toList()
+            if (anchorTags.size > 1) {
+                body += anchorTags.map { anchorTag ->
+                    listOf("$name (${anchorTag.text().trim()})", anchorTag.attr("href").trim())
+                }
+            } else {
+                body.add(listOf(name, anchorTags[0].attr("href").trim()))
+            }
+        }
+        return Details(body = body)
+    }
 }
