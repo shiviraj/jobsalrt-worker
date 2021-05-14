@@ -1,13 +1,13 @@
 package com.jobsalrt.worker.repository
 
 import com.jobsalrt.worker.controller.view.FilterRequest
+import com.jobsalrt.worker.domain.POST_COLLECTION
 import com.jobsalrt.worker.domain.Post
-import org.bson.Document
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -22,14 +22,21 @@ class PostRepositoryOps(
         val query = createQueryWithFilter(filterRequest)
             .skip(((page - 1) * limit).toLong())
             .limit(limit)
+            .with(Sort.by(Sort.Direction.DESC, "createdAt"))
+
         val fields = listOf("basicDetails", "source", "createdAt", "status", "postUpdateDate", "source", "totalViews")
         fields.forEach { query.fields().include(it) }
-        return mongoOperations.find(query, Post::class.java)
+        return mongoOperations.find(query, Post::class.java, POST_COLLECTION)
     }
 
     fun findPostCount(filterRequest: FilterRequest): Mono<Pair<Long, Double>> {
-        return mongoOperations.count(createQueryWithFilter(filterRequest), Post::class.java)
+        return mongoOperations.count(createQueryWithFilter(filterRequest), Post::class.java, POST_COLLECTION)
             .map { Pair(it, ceil(it.toDouble() / limit)) }
+    }
+
+    fun findByBasicDetailsUrl(url: String): Mono<Post> {
+        val query = Query(Criteria.where("basicDetails.url").`is`(url))
+        return mongoOperations.findOne(query, Post::class.java, POST_COLLECTION)
     }
 
     private fun createQueryWithFilter(filterRequest: FilterRequest): Query {

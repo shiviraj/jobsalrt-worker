@@ -47,5 +47,15 @@ class PostController(
     fun updatePost(@PathVariable url: String, @RequestBody post: Post): Mono<Post> {
         return postService.updatePost(url, post)
     }
+
+    @GetMapping("/{url}/available")
+    fun urlAvailable(@PathVariable url: String): Mono<Pair<Boolean, String>> {
+        return postService.urlAvailable(url)
+    }
+
+    @PostMapping
+    fun addPost(@RequestBody post: Post): Mono<Post> {
+        return postService.addPost(post)
+    }
 }
 

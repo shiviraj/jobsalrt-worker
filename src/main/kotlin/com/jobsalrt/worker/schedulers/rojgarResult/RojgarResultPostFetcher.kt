@@ -96,7 +96,7 @@ class RojgarResultPostFetcher(
         return createDetails(document, "important date", true)
     }
 
-    override fun getBasicDetails(document: Document): BasicDetails? {
+    override fun getBasicDetails(document: Document): BasicDetails {
         val subList = getMainTable(document)?.select("td")?.toList()?.subList(0, 3) ?: emptyList()
         val name = subList.first().text().trim()
         val totalPost = subList[2].text().split(" ")[1].trim()

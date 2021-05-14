@@ -14,7 +14,7 @@ const val POST_COLLECTION = "posts"
 data class Post(
     @Id
     var id: ObjectId? = null,
-    var basicDetails: BasicDetails? = null,
+    var basicDetails: BasicDetails = BasicDetails(name = "Anonymous", postLogo = ""),
     var states: List<State> = emptyList(),
     var dates: Details? = null,
     var feeDetails: Details? = null,
@@ -31,18 +31,12 @@ data class Post(
     var isUpdateAvailable: Boolean = false,
     val otherSource: String? = null,
     var failures: List<String> = emptyList(),
-    var totalViews: Long = 0
-) {
+    var totalViews: Long = 0,
     var postUpdateDate: LocalDate = LocalDate.now()
-}
-
-data class Link(
-    val name: String,
-    val link: List<Pair<String, String>>
 )
 
 data class BasicDetails(
-    val name: String,
+    val name: String = "Anonymous",
     var formType: FormType? = null,
     val advtNo: String? = null,
     val lastDate: LocalDate? = null,
@@ -53,7 +47,7 @@ data class BasicDetails(
     val minAgeLimit: LocalDate? = null,
     val maxAgeLimit: LocalDate? = null,
     val postLogo: String = "",
-    var url: String? = null
+    var url: String = name.replace(" ", "-").toLowerCase()
 )
 
 data class State(
@@ -78,10 +72,12 @@ enum class FormType {
 }
 
 enum class Type {
+    LATEST_JOB,
     ADMIT_CARD,
     RESULT,
     SYLLABUS,
-    ANSWER_KEY
+    ANSWER_KEY,
+    ADMISSION,
 }
 
 enum class Status {

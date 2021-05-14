@@ -110,7 +110,7 @@ class SarkariResultPostFetcher(
         return createDetailsFromList(document, "important date")
     }
 
-    override fun getBasicDetails(document: Document): BasicDetails? {
+    override fun getBasicDetails(document: Document): BasicDetails {
         val companyName = findMainTable(document).select("tr").toList().first()
             .select("h2").text().trim()
         val name = document.select("h1").text().trim()

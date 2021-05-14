@@ -124,7 +124,7 @@ abstract class PostFetcher(
 
     abstract fun getDates(document: Document): Details?
 
-    abstract fun getBasicDetails(document: Document): BasicDetails?
+    abstract fun getBasicDetails(document: Document): BasicDetails
 
     fun parseImportantLinks(rows: List<Element>): Details {
         val body = mutableListOf<List<String>>()

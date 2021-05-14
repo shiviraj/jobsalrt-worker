@@ -7,6 +7,7 @@ import com.jobsalrt.worker.repository.PostRepositoryOps
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import java.time.LocalDate
 
 @Service
 class PostService(
@@ -31,15 +32,30 @@ class PostService(
     }
 
     fun getPostByUrl(url: String): Mono<Post> {
-        return postRepository.findByBasicDetailsUrl(url)
+        return postRepositoryOps.findByBasicDetailsUrl(url)
 
     }
 
     fun updatePost(url: String, post: Post): Mono<Post> {
-        return postRepository.findByBasicDetailsUrl(url)
+        return postRepositoryOps.findByBasicDetailsUrl(url)
             .flatMap {
                 post.id = it.id
+                post.postUpdateDate = LocalDate.now()
                 save(post)
             }
+    }
+
+    fun urlAvailable(url: String): Mono<Pair<Boolean, String>> {
+        return postRepositoryOps.findByBasicDetailsUrl(url)
+            .map {
+                Pair(false, it.source)
+            }
+            .switchIfEmpty(
+                Mono.just(Pair(true, ""))
+            )
+    }
+
+    fun addPost(post: Post): Mono<Post> {
+        return postRepository.save(post)
     }
 }

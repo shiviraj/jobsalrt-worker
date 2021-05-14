@@ -95,7 +95,7 @@ class JobSarkariPostFetcher(
         return Details(pair.first ?: emptyList(), body = pair.second!!)
     }
 
-    override fun getBasicDetails(document: Document): BasicDetails? {
+    override fun getBasicDetails(document: Document): BasicDetails {
         val pair = findTableAndSelectHeaderAndBody(document, "important date")
         val advtNo = pair.second?.find {
             it.contains(Regex("advt", RegexOption.IGNORE_CASE))
@@ -105,9 +105,6 @@ class JobSarkariPostFetcher(
         return BasicDetails(
             name = document.select("h1").text().trim(),
             formType = FormType.of(findValueFromKeyRegex(map, "form type") ?: ""),
-            location = findValueFromKeyRegex(map, "location"),
-            company = findValueFromKeyRegex(map, "company"),
-            qualification = findValueFromKeyRegex(map, "qualification"),
             advtNo = advtNo,
             lastDate = try {
                 LocalDate.parse(findValueFromKeyRegex(map, "last date"), DateTimeFormatter.ofPattern("dd/MM/yyyy"))
@@ -118,7 +115,10 @@ class JobSarkariPostFetcher(
                 findValueFromKeyRegex(map, "total vacancies")?.toLong()
             } catch (e: Exception) {
                 null
-            }
+            },
+            location = findValueFromKeyRegex(map, "location"),
+            company = findValueFromKeyRegex(map, "company"),
+            qualification = findValueFromKeyRegex(map, "qualification"),
         )
     }
 
