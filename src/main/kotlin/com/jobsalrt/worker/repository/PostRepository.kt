@@ -8,5 +8,5 @@ import reactor.core.publisher.Mono
 @Repository
 interface PostRepository : ReactiveCrudRepository<Post, String> {
     fun findBySource(source: String): Mono<Post>
-    fun findByBasicDetailsUrl(url: String): Mono<Post>
+    fun deleteByBasicDetailsUrl(url: String): Mono<Post>
 }

@@ -96,10 +96,10 @@ class JobSarkariPostFetcher(
     }
 
     override fun getBasicDetails(document: Document): BasicDetails {
-        val pair = findTableAndSelectHeaderAndBody(document, "important date")
-        val advtNo = pair.second?.find {
-            it.contains(Regex("advt", RegexOption.IGNORE_CASE))
-        }?.get(1)
+        val advtNo = getDates(document)?.body
+            ?.find {
+                it.first().contains(Regex("advt", RegexOption.IGNORE_CASE))
+            }?.get(1)
 
         val map = createBasicDetailsMap(document)
         return BasicDetails(

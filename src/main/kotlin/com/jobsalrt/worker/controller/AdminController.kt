@@ -24,7 +24,6 @@ class AdminController(
                 it.token = webToken.generateToken(it.email)
                 adminService.save(it)
             }.map {
-                (it)
                 AuthenticationResponse(it.token)
             }
             .switchIfEmpty(

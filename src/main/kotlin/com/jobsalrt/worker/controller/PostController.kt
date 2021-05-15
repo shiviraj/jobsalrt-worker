@@ -43,6 +43,11 @@ class PostController(
         return postService.getPostByUrl(url)
     }
 
+    @DeleteMapping("/{url}")
+    fun deletePostByUrl(@PathVariable url: String): Mono<Post> {
+        return postService.deletePostByUrl(url)
+    }
+
     @PutMapping("/{url}")
     fun updatePost(@PathVariable url: String, @RequestBody post: Post): Mono<Post> {
         return postService.updatePost(url, post)

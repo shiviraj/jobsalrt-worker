@@ -58,4 +58,8 @@ class PostService(
     fun addPost(post: Post): Mono<Post> {
         return postRepository.save(post)
     }
+
+    fun deletePostByUrl(url: String): Mono<Post> {
+        return postRepository.deleteByBasicDetailsUrl(url)
+    }
 }

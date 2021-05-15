@@ -6,6 +6,7 @@ import org.springframework.data.annotation.TypeAlias
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDate
+import kotlin.random.Random
 
 const val POST_COLLECTION = "posts"
 
@@ -47,7 +48,7 @@ data class BasicDetails(
     val minAgeLimit: LocalDate? = null,
     val maxAgeLimit: LocalDate? = null,
     val postLogo: String = "",
-    var url: String = name.replace(" ", "-").toLowerCase()
+    var url: String = "anonymous" + Random.nextInt(10000)
 )
 
 data class State(
