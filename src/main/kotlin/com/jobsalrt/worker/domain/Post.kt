@@ -6,6 +6,7 @@ import org.springframework.data.annotation.TypeAlias
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDate
+import java.time.LocalDateTime
 import kotlin.random.Random
 
 const val POST_COLLECTION = "posts"
@@ -27,13 +28,13 @@ data class Post(
     var others: Map<String, Details>? = null,
     @Indexed(unique = true)
     val source: String,
-    val createdAt: LocalDate = LocalDate.now(),
+    val createdAt: LocalDateTime = LocalDateTime.now(),
     val status: Status = Status.NOT_VERIFIED,
     var isUpdateAvailable: Boolean = false,
     val otherSource: String? = null,
     var failures: List<String> = emptyList(),
     var totalViews: Long = 0,
-    var postUpdateDate: LocalDate = LocalDate.now()
+    var postUpdateDate: LocalDateTime = LocalDateTime.now()
 )
 
 data class BasicDetails(
@@ -53,7 +54,7 @@ data class BasicDetails(
 
 data class State(
     val type: Type,
-    val createdAt: LocalDate = LocalDate.now()
+    val createdAt: LocalDateTime = LocalDateTime.now()
 )
 
 data class Details(

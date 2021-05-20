@@ -5,6 +5,7 @@ import com.jobsalrt.worker.domain.Post
 import com.jobsalrt.worker.domain.Status
 import org.bson.types.ObjectId
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 data class BasicDetailsView(
@@ -19,8 +20,8 @@ data class BasicDetailsView(
     val qualification: String? = null,
     val postLogo: String = "",
     val url: String,
-    val createdAt: LocalDate,
-    val postUpdateDate: LocalDate,
+    val createdAt: LocalDateTime,
+    val postUpdateDate: LocalDateTime,
     val source: String,
     val status: Status,
     val isUpdateAvailable: Boolean,

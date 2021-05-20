@@ -7,7 +7,7 @@ import com.jobsalrt.worker.repository.PostRepositoryOps
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Service
 class PostService(
@@ -40,7 +40,7 @@ class PostService(
         return postRepositoryOps.findByBasicDetailsUrl(url)
             .flatMap {
                 post.id = it.id
-                post.postUpdateDate = LocalDate.now()
+                post.postUpdateDate = LocalDateTime.now()
                 save(post)
             }
     }
