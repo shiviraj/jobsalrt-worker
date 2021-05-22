@@ -1,4 +1,4 @@
-package com.jobsalrt.worker.schedulers.jobSarkari
+package com.jobsalrt.worker.service.jobSarkari
 
 import com.jobsalrt.worker.domain.JobUrl
 import com.jobsalrt.worker.schedulers.UrlFetcher

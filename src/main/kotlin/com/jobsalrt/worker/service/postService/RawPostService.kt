@@ -1,4 +1,4 @@
-package com.jobsalrt.worker.service
+package com.jobsalrt.worker.service.postService
 
 import com.jobsalrt.worker.domain.RawPost
 import com.jobsalrt.worker.repository.RawPostRepository

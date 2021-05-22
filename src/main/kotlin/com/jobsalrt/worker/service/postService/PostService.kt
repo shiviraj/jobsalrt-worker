@@ -1,4 +1,4 @@
-package com.jobsalrt.worker.service
+package com.jobsalrt.worker.service.postService
 
 import com.jobsalrt.worker.controller.view.FilterRequest
 import com.jobsalrt.worker.domain.Post
@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 @Service
 class PostService(
     @Autowired private val postRepository: PostRepository,
-    @Autowired private val postRepositoryOps: PostRepositoryOps
+    @Autowired private val postRepositoryOps: PostRepositoryOps,
 ) {
 
     fun save(post: Post): Mono<Post> {

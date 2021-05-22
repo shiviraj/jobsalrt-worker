@@ -1,12 +1,11 @@
-package com.jobsalrt.worker.schedulers.rojgarResult
+package com.jobsalrt.worker.service.rojgarResult
 
 import com.jobsalrt.worker.domain.BasicDetails
 import com.jobsalrt.worker.domain.Details
 import com.jobsalrt.worker.domain.FormType
-import com.jobsalrt.worker.schedulers.PostFetcher
-import com.jobsalrt.worker.service.CommunicationService
-import com.jobsalrt.worker.service.PostService
-import com.jobsalrt.worker.service.RawPostService
+import com.jobsalrt.worker.service.postService.PostFetcher
+import com.jobsalrt.worker.service.postService.PostService
+import com.jobsalrt.worker.service.postService.RawPostService
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -17,10 +16,9 @@ import org.springframework.stereotype.Service
 class RojgarResultPostFetcher(
     @Autowired webClientWrapper: WebClientWrapper,
     @Autowired postService: PostService,
-    @Autowired communicationService: CommunicationService,
     @Autowired rawPostService: RawPostService
 ) :
-    PostFetcher(webClientWrapper, postService, communicationService, rawPostService) {
+    PostFetcher(webClientWrapper, postService, rawPostService) {
     override fun parseHtml(document: Document): String {
         return getMainTable(document).toString()
     }

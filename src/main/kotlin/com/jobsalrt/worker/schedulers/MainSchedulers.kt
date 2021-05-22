@@ -1,14 +1,14 @@
 package com.jobsalrt.worker.schedulers
 
 import com.jobsalrt.worker.domain.JobUrl
-import com.jobsalrt.worker.schedulers.jobSarkari.JobSarkariPostFetcher
-import com.jobsalrt.worker.schedulers.jobSarkari.JobSarkariUrlFetcher
-import com.jobsalrt.worker.schedulers.rojgarResult.RojgarResultPostFetcher
-import com.jobsalrt.worker.schedulers.rojgarResult.RojgarResultUrlFetcher
-import com.jobsalrt.worker.schedulers.sarkariResult.SarkariResultPostFetcher
-import com.jobsalrt.worker.schedulers.sarkariResult.SarkariResultUrlFetcher
 import com.jobsalrt.worker.service.BlockedJobUrlService
 import com.jobsalrt.worker.service.JobUrlService
+import com.jobsalrt.worker.service.jobSarkari.JobSarkariPostFetcher
+import com.jobsalrt.worker.service.jobSarkari.JobSarkariUrlFetcher
+import com.jobsalrt.worker.service.rojgarResult.RojgarResultPostFetcher
+import com.jobsalrt.worker.service.rojgarResult.RojgarResultUrlFetcher
+import com.jobsalrt.worker.service.sarkariResult.SarkariResultPostFetcher
+import com.jobsalrt.worker.service.sarkariResult.SarkariResultUrlFetcher
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled

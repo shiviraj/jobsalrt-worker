@@ -4,7 +4,7 @@ import com.jobsalrt.worker.controller.view.BasicDetailsView
 import com.jobsalrt.worker.controller.view.FilterRequest
 import com.jobsalrt.worker.controller.view.PageCountView
 import com.jobsalrt.worker.domain.Post
-import com.jobsalrt.worker.service.PostService
+import com.jobsalrt.worker.service.postService.PostService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Mono

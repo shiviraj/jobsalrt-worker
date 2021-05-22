@@ -1,9 +1,6 @@
-package com.jobsalrt.worker.schedulers
+package com.jobsalrt.worker.service.postService
 
 import com.jobsalrt.worker.domain.*
-import com.jobsalrt.worker.service.CommunicationService
-import com.jobsalrt.worker.service.PostService
-import com.jobsalrt.worker.service.RawPostService
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -16,18 +13,10 @@ import reactor.core.publisher.Mono
 abstract class PostFetcher(
     private val webClientWrapper: WebClientWrapper,
     private val postService: PostService,
-    private val communicationService: CommunicationService,
-    private val rawPostService: RawPostService
+    private val rawPostService: RawPostService,
 ) {
     fun fetch(jobUrl: JobUrl): Mono<RawPost> {
-        return webClientWrapper.get(
-            baseUrl = jobUrl.url,
-            path = "",
-            returnType = String::class.java,
-        )
-            .map {
-                Jsoup.parse(it)
-            }
+        return fetchPostFromUrl(jobUrl.url)
             .flatMap { document ->
                 rawPostService.findBySource(jobUrl.url)
                     .flatMap {
@@ -41,15 +30,10 @@ abstract class PostFetcher(
             }
     }
 
-    @Transactional(rollbackForClassName = ["Exception"])
-    fun addPostAndRawPost(document: Document, jobUrl: JobUrl): Mono<RawPost> {
-        return Mono.just(document)
-            .flatMap {
-                val post = createPost(Post(source = jobUrl.url), document)
-                postService.save(post)
-            }
-            .flatMap {
-                rawPostService.save(RawPost(html = parseHtml(document), source = jobUrl.url))
+    fun fetchPost(source: String): Mono<Post> {
+        return fetchPostFromUrl(source)
+            .map {
+                createPost(Post(source = source), it)
             }
     }
 
@@ -71,7 +55,28 @@ abstract class PostFetcher(
         }
     }
 
-    abstract fun parseHtml(document: Document): String
+    @Transactional(rollbackForClassName = ["Exception"])
+    fun addPostAndRawPost(document: Document, jobUrl: JobUrl): Mono<RawPost> {
+        return Mono.just(document)
+            .flatMap {
+                val post = createPost(Post(source = jobUrl.url), document)
+                postService.save(post)
+            }
+            .flatMap {
+                rawPostService.save(RawPost(html = parseHtml(document), source = jobUrl.url))
+            }
+    }
+
+    private fun fetchPostFromUrl(url: String): Mono<Document> {
+        return webClientWrapper.get(
+            baseUrl = url,
+            path = "",
+            returnType = String::class.java,
+        )
+            .map {
+                Jsoup.parse(it)
+            }
+    }
 
     private fun createPost(post: Post, document: Document): Post {
         try {
@@ -87,16 +92,10 @@ abstract class PostFetcher(
             updateDetails("How to Apply", errorStacks) { post.howToApply = getHowToApplyDetails(document) }
             updateDetails("Important Links", errorStacks) { post.importantLinks = getImportantLinks(document) }
             updateDetails("Other Details", errorStacks) { post.others = getOtherDetails(document) }
-            sendFailureNotification(errorStacks, post)
             post.failures = errorStacks
         } catch (e: Exception) {
         }
         return post
-    }
-
-    private fun sendFailureNotification(errorStacks: List<String>, post: Post) {
-        if (errorStacks.isNotEmpty())
-            communicationService.sendFailureAlert(errorStacks, post).subscribe()
     }
 
     private fun updateDetails(errorMessage: String, errorStacks: MutableList<String>, function: () -> Unit) {
@@ -107,6 +106,8 @@ abstract class PostFetcher(
             println("Failed to update $errorMessage")
         }
     }
+
+    abstract fun parseHtml(document: Document): String
 
     abstract fun getOtherDetails(document: Document): Map<String, Details>?
 
