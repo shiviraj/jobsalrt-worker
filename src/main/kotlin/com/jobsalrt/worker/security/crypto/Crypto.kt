@@ -9,7 +9,7 @@ import javax.crypto.spec.SecretKeySpec
 
 @Component
 class Crypto {
-    private val secretKey = System.getenv("CRYPTO_SECRET_KEY") ?: "defaultsecretkey"
+    private val secretKey = System.getenv("CRYPTO_SECRET_KEY")
 
     fun encrypt(strToEncrypt: String): String? {
         Security.addProvider(BouncyCastleProvider())
@@ -31,6 +31,7 @@ class Crypto {
                 return String(Base64.encode(cipherText))
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             return null
         }
     }
