@@ -2,7 +2,7 @@ FROM adoptopenjdk/openjdk11
 
 WORKDIR /home/workspace
 
-RUN gradle clean build
+RUN ./gradlew clean build
 
 COPY build/libs/*.jar .
 
