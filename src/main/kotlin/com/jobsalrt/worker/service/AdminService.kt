@@ -40,6 +40,5 @@ class AdminService(
 
     fun getAdminByToken(token: String): Mono<Admin> {
         return adminRepository.findByToken(token)
-
     }
 }

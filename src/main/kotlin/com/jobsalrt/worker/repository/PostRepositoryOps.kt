@@ -24,7 +24,16 @@ class PostRepositoryOps(
             .limit(limit)
             .with(Sort.by(Sort.Direction.fromString(filter.sortOrder), filter.sortBy))
 
-        val fields = listOf("basicDetails", "source", "createdAt", "status", "postUpdateDate", "source", "totalViews")
+        val fields = listOf(
+            "basicDetails",
+            "source",
+            "createdAt",
+            "status",
+            "postUpdateDate",
+            "source",
+            "totalViews",
+            "isUpdateAvailable"
+        )
         fields.forEach { query.fields().include(it) }
         return mongoOperations.find(query, Post::class.java, POST_COLLECTION)
     }
@@ -43,6 +52,17 @@ class PostRepositoryOps(
         val query = Query()
         filter.filters.forEach {
             query.addCriteria(Criteria.where(it.key).`in`(it.value))
+        }
+        if (filter.search.isNotEmpty()) {
+            query.addCriteria(
+                Criteria.where("").orOperator(
+                    Criteria.where("basicDetails.url").regex(".*${filter.search}.*"),
+                    Criteria.where("basicDetails.name").regex(".*${filter.search}.*"),
+                    Criteria.where("basicDetails.location").regex(".*${filter.search}.*"),
+                    Criteria.where("basicDetails.company").regex(".*${filter.search}.*"),
+                    Criteria.where("basicDetails.qualification").regex(".*${filter.search}.*"),
+                )
+            )
         }
         return query
     }
