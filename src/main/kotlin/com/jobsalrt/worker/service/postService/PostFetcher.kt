@@ -40,6 +40,7 @@ abstract class PostFetcher(
     @Transactional(rollbackForClassName = ["Exception"])
     fun updateRawPostIfAvailable(document: Document, rawPost: RawPost): Mono<RawPost> {
         val html = parseHtml(document)
+            .replace(Regex("<[^a][^>]*>", RegexOption.IGNORE_CASE), "")
         return if (rawPost.html != html) {
             postService.findBySource(rawPost.source)
                 .flatMap {

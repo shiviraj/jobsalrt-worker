@@ -1,10 +1,14 @@
 package com.jobsalrt.worker.schedulers
 
 import com.jobsalrt.worker.domain.JobUrl
+import com.jobsalrt.worker.domain.RawPost
 import com.jobsalrt.worker.service.BlockedJobUrlService
+import com.jobsalrt.worker.service.CommunicationService
 import com.jobsalrt.worker.service.JobUrlService
 import com.jobsalrt.worker.service.jobSarkari.JobSarkariPostFetcher
 import com.jobsalrt.worker.service.jobSarkari.JobSarkariUrlFetcher
+import com.jobsalrt.worker.service.postService.PostService
+import com.jobsalrt.worker.service.postService.RawPostService
 import com.jobsalrt.worker.service.rojgarResult.RojgarResultPostFetcher
 import com.jobsalrt.worker.service.rojgarResult.RojgarResultUrlFetcher
 import com.jobsalrt.worker.service.sarkariResult.SarkariResultPostFetcher
@@ -27,17 +31,39 @@ class MainSchedulers(
     @Autowired private val jobSarkariPostFetcher: JobSarkariPostFetcher,
     @Autowired private val rojgarResultPostFetcher: RojgarResultPostFetcher,
     @Autowired private val sarkariResultPostFetcher: SarkariResultPostFetcher,
-    @Autowired private val blockedJobUrlService: BlockedJobUrlService
+    @Autowired private val blockedJobUrlService: BlockedJobUrlService,
+    @Autowired private val communicationService: CommunicationService,
+    @Autowired private val rawPostService: RawPostService,
+    @Autowired private val postService: PostService
 ) {
     @Scheduled(cron = "0 0/30 * * * *")
     @SchedulerLock(name = "MainSchedulers_start", lockAtLeastFor = "5m", lockAtMostFor = "5m")
     fun start() {
         if (LocalDateTime.now().hour == 8)
             jobUrlService.deleteAll().block()
-        if (LocalDateTime.now().minute == 0)
-            fetchUrls().blockLast()
-        else
-            updatePosts().blockLast()
+        fetchUrls().blockLast()
+        updatePosts().blockLast()
+        sendNotification().blockLast()
+    }
+
+    private fun sendNotification(): Flux<RawPost> {
+        return rawPostService.findAllUnNotified()
+            .flatMap {
+                postService.findBySource(it.source)
+                    .map { post ->
+                        Pair(post, it)
+                    }
+            }
+            .flatMap { pair ->
+                communicationService.notify(pair.first)
+                    .flatMap {
+                        pair.second.isNotified = true
+                        rawPostService.save(pair.second)
+                    }
+            }
+            .onErrorResume {
+                Flux.empty()
+            }
     }
 
     private fun updatePosts(): Flux<JobUrl> {
