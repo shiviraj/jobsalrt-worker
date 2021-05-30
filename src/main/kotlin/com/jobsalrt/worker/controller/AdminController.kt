@@ -34,6 +34,6 @@ class AdminController(
     @GetMapping
     fun getAdminData(request: HttpServletRequest): Mono<Admin> {
         val email = (request.getAttribute("adminEmail") ?: "") as String
-        return adminService.getAdmin(email)
+        return adminService.getAdminByEmail(email)
     }
 }

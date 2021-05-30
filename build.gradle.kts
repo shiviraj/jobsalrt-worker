@@ -5,6 +5,7 @@ plugins {
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     kotlin("jvm") version "1.4.32"
     kotlin("plugin.spring") version "1.4.32"
+    jacoco
 }
 
 group = "com.jobsalrt"
@@ -31,9 +32,12 @@ dependencies {
     implementation("javax.xml.bind:jaxb-api:2.3.0")
     implementation("org.jsoup:jsoup:1.13.1")
     implementation("org.springframework.boot:spring-boot-starter-security")
-    testImplementation("io.mockk:mockk:1.10.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("io.projectreactor:reactor-test")
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:4.3.2")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:4.3.2")
+    testImplementation("io.mockk:mockk:1.10.0")
+    testImplementation("de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.2.0")
 }
 
 tasks.withType<KotlinCompile> {
@@ -45,4 +49,40 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+// Jacoco configuration
+
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    finalizedBy(tasks.jacocoTestCoverageVerification)
+}
+
+tasks.jacocoTestCoverageVerification {
+    dependsOn(tasks.jacocoTestReport)
+}
+
+jacoco {
+    toolVersion = "0.8.7"
+}
+
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = "0.07".toBigDecimal()
+            }
+        }
+
+        rule {
+            limit {
+                counter = "BRANCH"
+                minimum = "0".toBigDecimal()
+            }
+        }
+    }
 }

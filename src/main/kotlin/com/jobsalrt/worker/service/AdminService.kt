@@ -16,8 +16,9 @@ class AdminService(
     @Autowired private val adminRepository: AdminRepository,
 ) : UserDetailsService {
     private val bCryptPasswordEncoder = BCryptPasswordEncoder()
+
     fun login(request: AuthenticationRequest): Mono<Admin> {
-        return adminRepository.findByEmail(request.email)
+        return getAdminByEmail(request.email)
             .flatMap {
                 if (bCryptPasswordEncoder.matches(request.password, it.password))
                     Mono.just(it)
@@ -26,11 +27,14 @@ class AdminService(
     }
 
     override fun loadUserByUsername(email: String): UserDetails {
-        val admin = adminRepository.findByEmail(email).block()
-        return User(admin?.email ?: "email", admin?.password ?: "password", emptyList())
+        val admin = getAdminByEmail(email).block()
+        if (admin != null) {
+            return User(admin.email, admin.password, emptyList())
+        }
+        return User("email", "password", emptyList())
     }
 
-    fun getAdmin(email: String): Mono<Admin> {
+    fun getAdminByEmail(email: String): Mono<Admin> {
         return adminRepository.findByEmail(email)
     }
 
