@@ -19,6 +19,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import reactor.util.function.Tuple3
 import java.time.LocalDateTime
 
@@ -37,13 +38,13 @@ class MainSchedulers(
     @Autowired private val postService: PostService
 ) {
     @Scheduled(cron = "0 0/30 * * * *")
-    @SchedulerLock(name = "MainSchedulers_start", lockAtLeastFor = "5m", lockAtMostFor = "5m")
+    @SchedulerLock(name = "MainSchedulers_start", lockAtLeastFor = "30m", lockAtMostFor = "30m")
     fun start() {
         if (LocalDateTime.now().hour == 8)
             jobUrlService.deleteAll().block()
-        fetchUrls().blockLast()
-        updatePosts().blockLast()
-        sendNotification().blockLast()
+        fetchUrls().subscribeOn(Schedulers.boundedElastic()).blockLast()
+        updatePosts().subscribeOn(Schedulers.boundedElastic()).blockLast()
+        sendNotification().subscribeOn(Schedulers.boundedElastic()).blockLast()
     }
 
     private fun sendNotification(): Flux<RawPost> {
