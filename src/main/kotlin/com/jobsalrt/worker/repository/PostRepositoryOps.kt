@@ -51,7 +51,7 @@ class PostRepositoryOps(
     private fun createQueryWithFilter(filter: FilterRequest): Query {
         val query = Query()
         filter.filters.forEach {
-            query.addCriteria(Criteria.where(it.key).`in`(it.value))
+            query.addCriteria(Criteria.where(findKey(it.key)).`in`(it.value))
         }
         if (filter.search.isNotEmpty()) {
             query.addCriteria(
@@ -65,5 +65,15 @@ class PostRepositoryOps(
             )
         }
         return query
+    }
+
+    private fun findKey(key: String): String {
+        val keyMapping = mapOf(
+            "type" to "states.type",
+            "formType" to "basicDetails.formType",
+            "updateAvailable" to "isUpdateAvailable",
+            "status" to "status"
+        )
+        return keyMapping[key] ?: key
     }
 }
