@@ -11,7 +11,6 @@ import reactor.core.publisher.Mono
 class JobUrlService(@Autowired private val jobUrlRepository: JobUrlRepository) {
     fun save(jobUrl: JobUrl): Mono<JobUrl> {
         return jobUrlRepository.save(jobUrl)
-
     }
 
     fun getAllNotFetched(): Flux<JobUrl> {
