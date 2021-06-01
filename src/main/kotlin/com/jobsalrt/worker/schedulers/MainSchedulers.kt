@@ -13,6 +13,7 @@ import com.jobsalrt.worker.service.rojgarResult.RojgarResultPostFetcher
 import com.jobsalrt.worker.service.rojgarResult.RojgarResultUrlFetcher
 import com.jobsalrt.worker.service.sarkariResult.SarkariResultPostFetcher
 import com.jobsalrt.worker.service.sarkariResult.SarkariResultUrlFetcher
+import com.jobsalrt.worker.utils.DateProvider
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
@@ -21,7 +22,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.util.function.Tuple3
-import java.time.LocalDateTime
 
 @Component
 class MainSchedulers(
@@ -35,12 +35,13 @@ class MainSchedulers(
     @Autowired private val blockedJobUrlService: BlockedJobUrlService,
     @Autowired private val communicationService: CommunicationService,
     @Autowired private val rawPostService: RawPostService,
-    @Autowired private val postService: PostService
+    @Autowired private val postService: PostService,
+    @Autowired private val dateProvider: DateProvider
 ) {
     @Scheduled(cron = "0 0/30 * * * *")
     @SchedulerLock(name = "MainSchedulers_start", lockAtLeastFor = "30m", lockAtMostFor = "30m")
     fun start() {
-        if (LocalDateTime.now().hour == 8)
+        if (dateProvider.getHour() == 8)
             jobUrlService.deleteAll().block()
         fetchUrls().subscribeOn(Schedulers.boundedElastic()).blockLast()
         updatePosts().subscribeOn(Schedulers.boundedElastic()).blockLast()
@@ -68,7 +69,7 @@ class MainSchedulers(
     }
 
     private fun updatePosts(): Flux<JobUrl> {
-        val blockedJobUrls = blockedJobUrlService.getAll().collectList().block() ?: emptyList()
+        val blockedJobUrls = blockedJobUrlService.getAll().collectList().block()!!
         return jobUrlService.getAllNotFetched()
             .filter { jobUrl ->
                 !blockedJobUrls.any { it.url == jobUrl.url }
