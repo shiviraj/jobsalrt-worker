@@ -45,7 +45,7 @@ class PostsController(
 
     @PostMapping
     fun addPost(@RequestBody post: Post): Mono<Post> {
-        return postService.addPost(post)
+        return postService.save(post)
     }
 }
 

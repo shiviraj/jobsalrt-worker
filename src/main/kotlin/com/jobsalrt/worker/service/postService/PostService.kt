@@ -33,7 +33,6 @@ class PostService(
 
     fun getPostByUrl(url: String): Mono<Post> {
         return postRepositoryOps.findByBasicDetailsUrl(url)
-
     }
 
     fun updatePost(url: String, post: Post): Mono<Post> {
@@ -53,10 +52,6 @@ class PostService(
             .switchIfEmpty(
                 Mono.just(Pair(true, ""))
             )
-    }
-
-    fun addPost(post: Post): Mono<Post> {
-        return postRepository.save(post)
     }
 
     fun deletePostByUrl(url: String): Mono<Post> {
