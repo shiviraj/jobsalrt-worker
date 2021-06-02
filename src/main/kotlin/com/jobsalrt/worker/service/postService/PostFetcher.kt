@@ -5,11 +5,9 @@ import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
-import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 
-@Service
 abstract class PostFetcher(
     private val webClientWrapper: WebClientWrapper,
     private val postService: PostService,
@@ -38,7 +36,7 @@ abstract class PostFetcher(
     }
 
     @Transactional(rollbackForClassName = ["Exception"])
-    fun updateRawPostIfAvailable(document: Document, rawPost: RawPost): Mono<RawPost> {
+    open fun updateRawPostIfAvailable(document: Document, rawPost: RawPost): Mono<RawPost> {
         val html = parseHtml(document)
             .replace(Regex("<[^a][^>]*>", RegexOption.IGNORE_CASE), "")
             .replace(" ", "")
@@ -58,7 +56,7 @@ abstract class PostFetcher(
     }
 
     @Transactional(rollbackForClassName = ["Exception"])
-    fun addPostAndRawPost(document: Document, jobUrl: JobUrl): Mono<RawPost> {
+    open fun addPostAndRawPost(document: Document, jobUrl: JobUrl): Mono<RawPost> {
         return Mono.just(document)
             .flatMap {
                 val post = createPost(Post(source = jobUrl.url), document)

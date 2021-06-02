@@ -110,8 +110,7 @@ class JobSarkariUrlFetcherTest {
         val htmlString = """<div class="main_cards_container">
                 <p><a href="https://www.jobsarkari.com/url">name</a></p>
                 <p><a href="https://www.jobsarkari.com/url">name</a></p>
-                </div>
-                """
+                </div>"""
 
         val result = jobSarkariUrlFetcher.getJobUrls(Jsoup.parse(htmlString))
         assertSoftly {

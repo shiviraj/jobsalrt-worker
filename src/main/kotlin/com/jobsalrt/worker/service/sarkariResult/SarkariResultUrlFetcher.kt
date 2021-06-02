@@ -21,11 +21,8 @@ class SarkariResultUrlFetcher(
     }
 
     override fun getJobUrls(document: Document): List<JobUrl> {
-        return document.select("table")[2]
+        return document.select("table ul")
             .select("a")
-            .filter {
-                !it.text().contains(Regex("view more", RegexOption.IGNORE_CASE))
-            }
             .toList()
             .map { element ->
                 JobUrl(name = element.text().trim(), url = element.attr("href").trim())
