@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-
 @Service
 class JobSarkariPostFetcher(
     @Autowired webClientWrapper: WebClientWrapper,
@@ -25,21 +24,21 @@ class JobSarkariPostFetcher(
         return document.select(".job_card").toString()
     }
 
-    override fun getOtherDetails(document: Document): Map<String, Details>? {
+    override fun getOtherDetails(document: Document): Map<String, Details> {
         val regexPattern =
             "(important date|application fee|vacancy details|age limit|selection process|how to apply|important link)"
 
         val map = mutableMapOf<String, Details>()
-        document.select(".job_card").filter {
-            !it.select("h2").text().contains(Regex(regexPattern, RegexOption.IGNORE_CASE))
+        document.select(".job_card").filterNot {
+            it.select("h2").text().contains(Regex(regexPattern, RegexOption.IGNORE_CASE))
         }
             .toList()
             .map {
                 val tableName = it.select("h2").text().trim()
                 val table = it.select(".table")
                 val pair = getHeadAndBodyFromTable(table)
-                if (!pair.second.isNullOrEmpty()) {
-                    map[tableName] = Details(pair.first ?: emptyList(), body = pair.second!!)
+                if (pair != null && !pair.second.isNullOrEmpty()) {
+                    map[tableName] = Details(pair.first, body = pair.second)
                 }
             }
         return map
@@ -48,49 +47,47 @@ class JobSarkariPostFetcher(
     override fun getImportantLinks(document: Document): Details? {
         val table = document.select(".job_card").find {
             it.select("h2").text().contains(Regex("important link", RegexOption.IGNORE_CASE))
-        }
-            ?.select("tr")
-            ?.toList() ?: emptyList()
+        } ?: return null
 
-        val endIndex = table.indexOfFirst {
+        val links = table.select("tr").toList()
+
+        if (links.isNullOrEmpty()) return null
+
+        val endIndex = links.indexOfFirst {
             it.select("td").text().contains(Regex("official website", RegexOption.IGNORE_CASE))
         }.plus(1)
 
-        return parseImportantLinks(table.subList(0, endIndex))
+        return parseImportantLinks(links.subList(0, endIndex))
     }
 
     override fun getHowToApplyDetails(document: Document): List<String>? {
-        val pair = findTableAndSelectHeaderAndBody(document, "how to apply")
-        return pair.second?.flatten()
+        val pair = findTableAndSelectHeaderAndBody(document, "how to apply") ?: return null
+        return pair.second.flatten()
     }
 
     override fun getSelectionProcessDetails(document: Document): List<String>? {
-        val pair = findTableAndSelectHeaderAndBody(document, "selection process")
-        return pair.second?.flatten()
+        val pair = findTableAndSelectHeaderAndBody(document, "selection process") ?: return null
+        return pair.second.flatten()
     }
 
     override fun getAgeLimitDetails(document: Document): Details? {
-        val pair = findTableAndSelectHeaderAndBody(document, "age limit")
-        pair.second ?: return null
-        return Details(pair.first ?: emptyList(), body = pair.second!!)
+        val pair = findTableAndSelectHeaderAndBody(document, "age limit") ?: return null
+        return Details(pair.first, body = pair.second)
     }
 
     override fun getVacancyDetails(document: Document): Details? {
-        val pair = findTableAndSelectHeaderAndBody(document, "vacancy details")
-        pair.second ?: return null
-        return Details(pair.first ?: emptyList(), body = pair.second!!)
+        val pair = findTableAndSelectHeaderAndBody(document, "vacancy details") ?: return null
+        return Details(pair.first, body = pair.second)
     }
 
     override fun getFeeDetails(document: Document): Details? {
-        val pair = findTableAndSelectHeaderAndBody(document, "application fee")
-        pair.second ?: return null
-        return Details(pair.first ?: emptyList(), body = pair.second!!)
+        val pair = findTableAndSelectHeaderAndBody(document, "application fee") ?: return null
+        return Details(pair.first, body = pair.second)
     }
 
     override fun getDates(document: Document): Details? {
-        val pair = findTableAndSelectHeaderAndBody(document, "important date")
-        pair.second ?: return null
-        return Details(pair.first ?: emptyList(), body = pair.second!!)
+        val pair = findTableAndSelectHeaderAndBody(document, "important date") ?: return null
+        return Details(pair.first, body = pair.second)
     }
 
     override fun getBasicDetails(document: Document): BasicDetails {
@@ -123,31 +120,35 @@ class JobSarkariPostFetcher(
     private fun findTableAndSelectHeaderAndBody(
         document: Document,
         pattern: String
-    ): Pair<List<String>?, List<List<String>>?> {
+    ): Pair<List<String>, List<List<String>>>? {
         val table = document.select(".job_card")
             .find {
                 it.select("h2").text().contains(Regex(pattern, RegexOption.IGNORE_CASE))
-            }
-            ?.select(".table")
-        return getHeadAndBodyFromTable(table)
+            } ?: return null
+        return getHeadAndBodyFromTable(table.select(".table"))
     }
 
-    private fun getHeadAndBodyFromTable(table: Elements?): Pair<List<String>?, List<List<String>>?> {
-        val header = table?.select("thead")?.select("th")
-            ?.toList()
-            ?.map {
+    private fun getHeadAndBodyFromTable(table: Elements): Pair<List<String>, List<List<String>>>? {
+        val header = table.select("thead th")
+            .toList()
+            .map {
                 it.text().trim()
             }
 
-        val body = table?.select("tr")
-            ?.toList()
-            ?.map {
+        val body = table.select("tr")
+            .toList()
+            .map {
                 it.select("td")
                     .toList()
                     .map { element ->
                         element.text().trim()
                     }
             }
+            .filter {
+                it.isNotEmpty()
+            }
+
+        if (body.isNullOrEmpty()) return null
 
         return Pair(header, body)
     }
