@@ -19,7 +19,7 @@ class RawPostService(@Autowired private val rawPostRepository: RawPostRepository
     }
 
     fun findAllUnNotified(): Flux<RawPost> {
-        val pageable = PageRequest.of(1, 25)
+        val pageable = PageRequest.of(1, 100)
         return rawPostRepository.findAllByIsNotified(false, pageable)
     }
 }

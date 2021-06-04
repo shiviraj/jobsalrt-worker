@@ -16,7 +16,7 @@ class JobUrlService(@Autowired private val jobUrlRepository: JobUrlRepository) {
     }
 
     fun getAllNotFetched(): Flux<JobUrl> {
-        val pageable = PageRequest.of(1, 25)
+        val pageable = PageRequest.of(1, 100)
         return jobUrlRepository.findAllNotFetched(pageable)
             .flatMap {
                 it.retryCount += 1
