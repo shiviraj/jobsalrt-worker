@@ -37,11 +37,12 @@ class MainSchedulers(
     @Autowired private val postService: PostService,
     @Autowired private val dateProvider: DateProvider
 ) {
-    @Scheduled(cron = "0 0/30 * * * *")
+    @Scheduled(cron = "0 0/15 * * * *")
     fun start() {
-        if (dateProvider.getHour() == 8)
+        if (dateProvider.getHour() == 8 && dateProvider.getMinute() == 0)
             jobUrlService.deleteAll().block()
-        fetchUrls().subscribeOn(Schedulers.boundedElastic()).blockLast()
+        if (dateProvider.getMinute() == 0)
+            fetchUrls().subscribeOn(Schedulers.boundedElastic()).blockLast()
         updatePosts().subscribeOn(Schedulers.boundedElastic()).blockLast()
         sendNotification().subscribeOn(Schedulers.boundedElastic()).blockLast()
     }

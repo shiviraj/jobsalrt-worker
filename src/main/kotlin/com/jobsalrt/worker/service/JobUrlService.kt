@@ -37,6 +37,7 @@ class JobUrlService(@Autowired private val jobUrlRepository: JobUrlRepository) {
         return findByUrl(oldUrl)
             .flatMap {
                 it.url = newUrl
+                if (it.retryCount > 3) it.status = JobUrlStatus.FAILED
                 save(it)
             }
     }
