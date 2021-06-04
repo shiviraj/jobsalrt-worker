@@ -8,4 +8,8 @@ class DateProvider {
     fun getHour(): Int {
         return LocalDateTime.now().hour
     }
+
+    fun getMinute(): Int {
+        return LocalDateTime.now().minute
+    }
 }

@@ -12,11 +12,12 @@ import reactor.core.publisher.Mono
 @Service
 class JobUrlService(@Autowired private val jobUrlRepository: JobUrlRepository) {
     fun save(jobUrl: JobUrl): Mono<JobUrl> {
+        if (jobUrl.url.isEmpty()) return Mono.error(Throwable("Empty Url"))
         return jobUrlRepository.save(jobUrl)
     }
 
     fun getAllNotFetched(): Flux<JobUrl> {
-        val pageable = PageRequest.of(1, 100)
+        val pageable = PageRequest.of(0, 100)
         return jobUrlRepository.findAllNotFetched(pageable)
             .flatMap {
                 it.retryCount += 1
@@ -55,9 +56,11 @@ class JobUrlService(@Autowired private val jobUrlRepository: JobUrlRepository) {
             }
             .collectList()
             .flatMapMany { urls ->
-                val unsavedUrls = jobUrls.filterNot {
-                    urls.contains(it.url)
-                }
+                val unsavedUrls = jobUrls
+                    .distinctBy { it.url }
+                    .filterNot {
+                        urls.contains(it.url) || it.url.isEmpty()
+                    }
                 jobUrlRepository.saveAll(unsavedUrls)
             }
     }

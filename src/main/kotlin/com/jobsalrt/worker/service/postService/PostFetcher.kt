@@ -26,7 +26,7 @@ abstract class PostFetcher(
                         addPostAndRawPost(document, jobUrl)
                     )
             }
-            .onErrorResume {
+            .doOnError {
                 if (it is RedirectionError) {
                     val url = it.clientResponse.headers().header("location")[0]
                     jobUrlService.replaceJobUrl(jobUrl.url, url)
@@ -37,9 +37,7 @@ abstract class PostFetcher(
                     it.printStackTrace()
                     jobUrlService.markedAsFailed(jobUrl)
                 }
-                    .flatMap {
-                        Mono.empty()
-                    }
+                    .subscribe()
             }
     }
 

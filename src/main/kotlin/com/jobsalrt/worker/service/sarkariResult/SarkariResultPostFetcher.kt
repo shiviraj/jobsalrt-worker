@@ -44,7 +44,7 @@ class SarkariResultPostFetcher(
                 }
             }
             .map {
-                val tableName = it.select("h3").text().trim()
+                val tableName = it.select("h3").text().trim().replace(".", "")
                 map[tableName] = createDetails(document, tableName)
             }
 

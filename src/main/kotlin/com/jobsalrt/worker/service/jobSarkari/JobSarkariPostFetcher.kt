@@ -37,7 +37,7 @@ class JobSarkariPostFetcher(
         }
             .toList()
             .map {
-                val tableName = it.select("h2").text().trim()
+                val tableName = it.select("h2").text().trim().replace(".", "")
                 val table = it.select(".table")
                 val pair = getHeadAndBodyFromTable(table)
                 if (pair != null && !pair.second.isNullOrEmpty()) {
@@ -164,7 +164,7 @@ class JobSarkariPostFetcher(
                 val key = it.select(".option_name_l").text()
                     .split(":")[0]
                     .trim()
-                    .toLowerCase()
+                    .toLowerCase().replace(".", "")
                 map[key] = it.select(".sec_detail").text().trim()
             }
         return map

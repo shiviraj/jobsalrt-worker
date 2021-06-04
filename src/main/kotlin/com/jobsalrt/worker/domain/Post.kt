@@ -49,8 +49,15 @@ data class BasicDetails(
     val minAgeLimit: LocalDate? = null,
     val maxAgeLimit: LocalDate? = null,
     val postLogo: String = "",
-    var url: String = "anonymous" + Random.nextInt(10000)
-)
+) {
+    var url: String = createUrl()
+
+    private fun createUrl(): String {
+        val url = if (name == "Anonymous") "anonymous"
+        else name.toLowerCase().replace(" ", "-").replace(Regex("[^a-z0-9]"), "")
+        return url + Random.nextInt(10000)
+    }
+}
 
 data class State(
     val type: Type,

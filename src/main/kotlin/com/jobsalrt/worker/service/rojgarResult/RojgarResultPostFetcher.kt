@@ -42,7 +42,7 @@ class RojgarResultPostFetcher(
                 text != "" && !text.contains(Regex(regexPattern, RegexOption.IGNORE_CASE))
             }
             .map {
-                val tableName = it.select("h2").text().trim()
+                val tableName = it.select("h2").text().trim().replace(".", "")
                 val details = createDetails(document, tableName)
                 map[tableName] = details
             }

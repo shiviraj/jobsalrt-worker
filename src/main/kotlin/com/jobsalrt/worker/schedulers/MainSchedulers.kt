@@ -73,6 +73,9 @@ class MainSchedulers(
                         jobUrl.status = JobUrlStatus.FETCHED
                         jobUrlService.save(jobUrl)
                     }
+                    .doOnError {
+                        it.printStackTrace()
+                    }
             }
     }
 
