@@ -27,7 +27,7 @@ data class Post(
     var importantLinks: Details? = null,
     var others: Map<String, Details>? = null,
     @Indexed(unique = true)
-    val source: String,
+    var source: String,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val status: Status = Status.NOT_VERIFIED,
     var isUpdateAvailable: Boolean = false,

@@ -6,7 +6,6 @@ import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 
 abstract class UrlFetcher(
     private val jobUrlService: JobUrlService,
@@ -21,19 +20,9 @@ abstract class UrlFetcher(
             .flatMapMany {
                 val document = Jsoup.parse(it)
                 val jobUrls = getJobUrls(document)
-                saveAll(jobUrls)
+                jobUrlService.saveAll(jobUrls)
             }
     }
 
     abstract fun getJobUrls(document: Document): List<JobUrl>
-
-    private fun saveAll(jobUrls: List<JobUrl>): Flux<JobUrl> {
-        return Flux.fromIterable(jobUrls)
-            .flatMapSequential { jobUrl ->
-                jobUrlService.save(jobUrl)
-                    .onErrorResume {
-                        Mono.empty()
-                    }
-            }
-    }
 }

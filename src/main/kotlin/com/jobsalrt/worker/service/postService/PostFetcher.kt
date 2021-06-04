@@ -31,15 +31,15 @@ abstract class PostFetcher(
                     val url = it.clientResponse.headers().header("location")[0]
                     jobUrlService.replaceJobUrl(jobUrl.url, url)
                         .flatMap {
-                            Mono.empty()
+                            postService.replaceSource(jobUrl.url, url)
                         }
                 } else {
                     it.printStackTrace()
                     jobUrlService.markedAsFailed(jobUrl)
-                        .flatMap {
-                            Mono.empty()
-                        }
                 }
+                    .flatMap {
+                        Mono.empty()
+                    }
             }
     }
 

@@ -47,4 +47,18 @@ class JobUrlService(@Autowired private val jobUrlRepository: JobUrlRepository) {
         }
         return Mono.just(jobUrl)
     }
+
+    fun saveAll(jobUrls: List<JobUrl>): Flux<JobUrl> {
+        return jobUrlRepository.findAll()
+            .map {
+                it.url
+            }
+            .collectList()
+            .flatMapMany { urls ->
+                val unsavedUrls = jobUrls.filterNot {
+                    urls.contains(it.url)
+                }
+                jobUrlRepository.saveAll(unsavedUrls)
+            }
+    }
 }

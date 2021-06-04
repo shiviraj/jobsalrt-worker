@@ -57,4 +57,12 @@ class PostService(
     fun deletePostByUrl(url: String): Mono<Post> {
         return postRepository.deleteByBasicDetailsUrl(url)
     }
+
+    fun replaceSource(oldSource: String, source: String): Mono<Post> {
+        return findBySource(oldSource)
+            .flatMap {
+                it.source = source
+                save(it)
+            }
+    }
 }
