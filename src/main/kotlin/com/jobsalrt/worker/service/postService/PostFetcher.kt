@@ -55,6 +55,7 @@ abstract class PostFetcher(
         val html = parseHtml(document)
             .replace(Regex("<[^a][^>]*>", RegexOption.IGNORE_CASE), "")
             .replace(" ", "")
+            .replace("\n", "")
 
         return rawPostService.findBySource(jobUrl.url)
             .flatMap { rawPost ->
