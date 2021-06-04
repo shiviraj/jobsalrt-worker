@@ -16,6 +16,14 @@ data class JobUrl(
     @Indexed(unique = true)
     val name: String,
     @Indexed(unique = true)
-    val url: String,
-    var isFetched: Boolean = false
+    var url: String,
+    var status: JobUrlStatus = JobUrlStatus.TO_FETCH,
+    var retryCount: Int = 0
 )
+
+enum class JobUrlStatus {
+    TO_FETCH,
+    FETCHING,
+    FETCHED,
+    FAILED
+}

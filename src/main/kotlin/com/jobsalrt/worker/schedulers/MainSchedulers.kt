@@ -1,6 +1,7 @@
 package com.jobsalrt.worker.schedulers
 
 import com.jobsalrt.worker.domain.JobUrl
+import com.jobsalrt.worker.domain.JobUrlStatus
 import com.jobsalrt.worker.domain.RawPost
 import com.jobsalrt.worker.service.BlockedJobUrlService
 import com.jobsalrt.worker.service.CommunicationService
@@ -19,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import reactor.core.scheduler.Schedulers
 import reactor.util.function.Tuple3
 
@@ -74,21 +74,22 @@ class MainSchedulers(
             .filter { jobUrl ->
                 !blockedJobUrls.any { it.url == jobUrl.url }
             }
-            .flatMapSequential {
-                when {
-                    isContains(it, "jobsarkari.com") -> jobSarkariPostFetcher.fetch(it)
-                    isContains(it, "rojgarresult.com") -> rojgarResultPostFetcher.fetch(it)
-                    isContains(it, "sarkariresults.info") -> sarkariResultPostFetcher.fetch(it)
-                    else -> Mono.empty()
-                }
-            }.flatMapSequential {
-                jobUrlService.findByUrl(it.source)
-                    .flatMap { jobUrl ->
-                        jobUrl.isFetched = true
+            .flatMapSequential { jobUrl ->
+                getPostFetcher(jobUrl)
+                    .fetch(jobUrl)
+                    .flatMap {
+                        jobUrl.status = JobUrlStatus.FETCHED
                         jobUrlService.save(jobUrl)
                     }
             }
     }
+
+    private fun getPostFetcher(it: JobUrl) = when {
+        isContains(it, "jobsarkari.com") -> jobSarkariPostFetcher
+        isContains(it, "rojgarresult.com") -> rojgarResultPostFetcher
+        else -> sarkariResultPostFetcher
+    }
+
 
     private fun isContains(it: JobUrl, pattern: String) = it.url.contains(Regex(pattern, RegexOption.IGNORE_CASE))
 

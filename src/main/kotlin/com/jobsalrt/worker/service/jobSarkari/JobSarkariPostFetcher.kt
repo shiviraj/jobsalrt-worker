@@ -3,6 +3,7 @@ package com.jobsalrt.worker.service.jobSarkari
 import com.jobsalrt.worker.domain.BasicDetails
 import com.jobsalrt.worker.domain.Details
 import com.jobsalrt.worker.domain.FormType
+import com.jobsalrt.worker.service.JobUrlService
 import com.jobsalrt.worker.service.postService.PostFetcher
 import com.jobsalrt.worker.service.postService.PostService
 import com.jobsalrt.worker.service.postService.RawPostService
@@ -18,8 +19,10 @@ import java.time.format.DateTimeFormatter
 class JobSarkariPostFetcher(
     @Autowired webClientWrapper: WebClientWrapper,
     @Autowired postService: PostService,
-    @Autowired rawPostService: RawPostService
-) : PostFetcher(webClientWrapper, postService, rawPostService) {
+    @Autowired rawPostService: RawPostService,
+    @Autowired jobUrlService: JobUrlService
+) :
+    PostFetcher(webClientWrapper, postService, rawPostService, jobUrlService) {
     override fun parseHtml(document: Document): String {
         return document.select(".job_card").toString()
     }

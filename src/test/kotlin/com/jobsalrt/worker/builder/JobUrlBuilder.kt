@@ -14,7 +14,7 @@ data class JobUrlBuilder(
             id = id,
             name = name,
             url = url,
-            isFetched = isFetched
+            status = isFetched
         )
     }
 }

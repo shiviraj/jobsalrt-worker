@@ -157,7 +157,7 @@ class MainSchedulersTest {
                 jobUrlService.findByUrl(post.source)
                 jobUrlService.save(capture(jobUrlSlot))
             }
-            jobUrlSlot.captured.isFetched shouldBe true
+            jobUrlSlot.captured.status shouldBe true
         }
     }
 
@@ -191,7 +191,7 @@ class MainSchedulersTest {
                 jobUrlService.findByUrl(post.source)
                 jobUrlService.save(capture(jobUrlSlot))
             }
-            jobUrlSlot.captured.isFetched shouldBe true
+            jobUrlSlot.captured.status shouldBe true
         }
     }
 
@@ -225,7 +225,7 @@ class MainSchedulersTest {
                 jobUrlService.findByUrl(post.source)
                 jobUrlService.save(capture(jobUrlSlot))
             }
-            jobUrlSlot.captured.isFetched shouldBe true
+            jobUrlSlot.captured.status shouldBe true
         }
     }
 

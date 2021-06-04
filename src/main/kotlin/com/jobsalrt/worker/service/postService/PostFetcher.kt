@@ -1,30 +1,45 @@
 package com.jobsalrt.worker.service.postService
 
 import com.jobsalrt.worker.domain.*
+import com.jobsalrt.worker.service.JobUrlService
+import com.jobsalrt.worker.webClient.RedirectionError
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
 
+@Service
 abstract class PostFetcher(
     private val webClientWrapper: WebClientWrapper,
     private val postService: PostService,
     private val rawPostService: RawPostService,
+    private val jobUrlService: JobUrlService
 ) {
     fun fetch(jobUrl: JobUrl): Mono<RawPost> {
         return fetchPostFromUrl(jobUrl.url)
             .flatMap { document ->
-                rawPostService.findBySource(jobUrl.url)
-                    .flatMap {
-                        updateRawPostIfAvailable(document, it)
-                    }
+                updateRawPostIfAvailable(document, jobUrl)
                     .switchIfEmpty(
                         addPostAndRawPost(document, jobUrl)
                     )
-            }.onErrorResume {
-                Mono.empty()
+            }
+            .onErrorResume {
+                if (it is RedirectionError) {
+                    val url = it.clientResponse.headers().header("location")[0]
+                    jobUrlService.replaceJobUrl(jobUrl.url, url)
+                        .flatMap {
+                            Mono.empty()
+                        }
+                } else {
+                    it.printStackTrace()
+                    jobUrlService.markedAsFailed(jobUrl)
+                        .flatMap {
+                            Mono.empty()
+                        }
+                }
             }
     }
 
@@ -36,34 +51,38 @@ abstract class PostFetcher(
     }
 
     @Transactional(rollbackForClassName = ["Exception"])
-    open fun updateRawPostIfAvailable(document: Document, rawPost: RawPost): Mono<RawPost> {
+    fun updateRawPostIfAvailable(document: Document, jobUrl: JobUrl): Mono<RawPost> {
         val html = parseHtml(document)
             .replace(Regex("<[^a][^>]*>", RegexOption.IGNORE_CASE), "")
             .replace(" ", "")
-        return if (rawPost.html != html) {
-            postService.findBySource(rawPost.source)
-                .flatMap {
-                    it.isUpdateAvailable = true
-                    postService.save(it)
+
+        return rawPostService.findBySource(jobUrl.url)
+            .flatMap { rawPost ->
+                rawPost.html = html
+                if (rawPost.html != html) {
+                    postService.findBySource(rawPost.source)
+                        .flatMap {
+                            it.isUpdateAvailable = true
+                            postService.save(it)
+                        }
+                        .flatMap {
+                            rawPostService.save(rawPost)
+                        }
+                } else {
+                    Mono.just(rawPost)
                 }
-                .flatMap {
-                    rawPost.html = html
-                    rawPostService.save(rawPost)
-                }
-        } else {
-            Mono.just(rawPost)
-        }
+            }
     }
 
     @Transactional(rollbackForClassName = ["Exception"])
-    open fun addPostAndRawPost(document: Document, jobUrl: JobUrl): Mono<RawPost> {
+    fun addPostAndRawPost(document: Document, jobUrl: JobUrl): Mono<RawPost> {
         return Mono.just(document)
             .flatMap {
                 val post = createPost(Post(source = jobUrl.url), document)
                 postService.save(post)
-            }
-            .flatMap {
-                rawPostService.save(RawPost(html = parseHtml(document), source = jobUrl.url))
+                    .flatMap {
+                        rawPostService.save(RawPost(html = parseHtml(document), source = jobUrl.url))
+                    }
             }
     }
 
@@ -94,6 +113,7 @@ abstract class PostFetcher(
             updateDetails("Other Details", errorStacks) { post.others = getOtherDetails(document) }
             post.failures = errorStacks
         } catch (e: Exception) {
+            e.printStackTrace()
         }
         return post
     }
