@@ -54,7 +54,7 @@ data class BasicDetails(
 
     private fun createUrl(): String {
         val url = if (name == "Anonymous") "anonymous"
-        else name.toLowerCase().replace(" ", "-").replace(Regex("[^a-z0-9]"), "")
+        else name.toLowerCase().replace(" ", "-").replace(Regex("[^a-z0-9-]"), "")
         return url + Random.nextInt(10000)
     }
 }
