@@ -3,6 +3,7 @@ package com.jobsalrt.worker.service.jobSarkari
 import com.jobsalrt.worker.builder.BasicDetailsBuilder
 import com.jobsalrt.worker.builder.DetailsBuilder
 import com.jobsalrt.worker.domain.FormType
+import com.jobsalrt.worker.service.JobUrlService
 import com.jobsalrt.worker.service.postService.PostService
 import com.jobsalrt.worker.service.postService.RawPostService
 import com.jobsalrt.worker.webClient.WebClientWrapper
@@ -19,7 +20,9 @@ class JobSarkariPostFetcherTest {
     private val webClientWrapper = mockk<WebClientWrapper>()
     private val postService = mockk<PostService>()
     private val rawPostService = mockk<RawPostService>()
-    private val jobSarkariPostFetcher = JobSarkariPostFetcher(webClientWrapper, postService, rawPostService)
+    private val jobUrlService = mockk<JobUrlService>()
+    private val jobSarkariPostFetcher =
+        JobSarkariPostFetcher(webClientWrapper, postService, rawPostService, jobUrlService)
     private val document = Jsoup.parse(
         """<body>
   <div class='noprint noprint-21' style='margin: 8px auto; text-align: center; clear: both;'>

@@ -48,7 +48,7 @@ class JobUrlServiceTest {
     @Test
     fun `should get all urls which are not fetched`() {
         val url = JobUrlBuilder().build()
-        every { jobUrlRepository.findAllNotFetched(pageable) } returns Flux.just(url)
+        every { jobUrlRepository.findAllNotFetched(any()) } returns Flux.just(url)
 
         val urls = jobUrlService.getAllNotFetched()
 

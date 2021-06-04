@@ -62,13 +62,13 @@ class RawPostServiceTest {
     fun `should find all raw post which are not notified`() {
         val rawPost = RawPostBuilder().build()
         val rawPost1 = RawPostBuilder(source = "source", isNotified = true).build()
-        every { rawPostRepository.findAllByIsNotified(any()) } returns Flux.just(rawPost, rawPost1)
+        every { rawPostRepository.findAllByIsNotified(any(), any()) } returns Flux.just(rawPost, rawPost1)
 
         val result = rawPostService.findAllUnNotified()
 
         assertNextWith(result, { it shouldBe rawPost }, { it shouldBe rawPost1 })
         verify(exactly = 1) {
-            rawPostRepository.findAllByIsNotified(false)
+            rawPostRepository.findAllByIsNotified(false, any())
         }
     }
 }

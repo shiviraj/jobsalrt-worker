@@ -15,7 +15,6 @@ import com.jobsalrt.worker.service.rojgarResult.RojgarResultUrlFetcher
 import com.jobsalrt.worker.service.sarkariResult.SarkariResultPostFetcher
 import com.jobsalrt.worker.service.sarkariResult.SarkariResultUrlFetcher
 import com.jobsalrt.worker.utils.DateProvider
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -39,7 +38,6 @@ class MainSchedulers(
     @Autowired private val dateProvider: DateProvider
 ) {
     @Scheduled(cron = "0 0/30 * * * *")
-    @SchedulerLock(name = "MainSchedulers_start", lockAtLeastFor = "30m", lockAtMostFor = "30m")
     fun start() {
         if (dateProvider.getHour() == 8)
             jobUrlService.deleteAll().block()
@@ -50,21 +48,15 @@ class MainSchedulers(
 
     private fun sendNotification(): Flux<RawPost> {
         return rawPostService.findAllUnNotified()
-            .flatMap {
-                postService.findBySource(it.source)
-                    .map { post ->
-                        Pair(post, it)
+            .flatMap { rawPost ->
+                postService.findBySource(rawPost.source)
+                    .flatMap { post ->
+                        communicationService.notify(post)
+                            .flatMap {
+                                rawPost.isNotified = true
+                                rawPostService.save(rawPost)
+                            }
                     }
-            }
-            .flatMap { pair ->
-                communicationService.notify(pair.first)
-                    .flatMap {
-                        pair.second.isNotified = true
-                        rawPostService.save(pair.second)
-                    }
-            }
-            .onErrorResume {
-                Flux.empty()
             }
     }
 
