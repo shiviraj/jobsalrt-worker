@@ -37,7 +37,7 @@ class MainSchedulers(
     @Autowired private val postService: PostService,
     @Autowired private val dateProvider: DateProvider
 ) {
-    @Scheduled(cron = "0 0/30 * * * *")
+    @Scheduled(cron = "0 0/10 * * * *")
     fun start() {
         if (dateProvider.getHour() == 8)
             jobUrlService.deleteAll().block()
