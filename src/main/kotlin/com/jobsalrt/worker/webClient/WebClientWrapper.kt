@@ -8,7 +8,6 @@ import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
-import reactor.util.retry.Retry
 import java.time.Duration
 
 @Service
@@ -40,10 +39,6 @@ class WebClientWrapper {
             }
             .bodyToMono(returnType)
             .timeout(requestTimeout ?: defaultRequestTimeout)
-            .retryWhen(
-                Retry.backoff(2, Duration.ofSeconds(3))
-                    .filter { throwable -> throwable !is RedirectionError }
-            )
     }
 
     fun <T> post(

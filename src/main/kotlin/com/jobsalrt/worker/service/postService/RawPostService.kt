@@ -22,4 +22,16 @@ class RawPostService(@Autowired private val rawPostRepository: RawPostRepository
         val pageable = PageRequest.of(0, 100)
         return rawPostRepository.findAllByIsNotified(false, pageable)
     }
+
+    fun updateHtml(source: String, html: String): Mono<RawPost> {
+        return findBySource(source)
+            .flatMap {
+                it.html = html
+                save(it)
+            }
+    }
+
+    fun deleteBySource(source: String): Mono<RawPost> {
+        return rawPostRepository.deleteBySource(source)
+    }
 }

@@ -18,9 +18,10 @@ class JobUrlService(@Autowired private val jobUrlRepository: JobUrlRepository) {
 
     fun getAllNotFetched(): Flux<JobUrl> {
         val pageable = PageRequest.of(0, 100)
-        return jobUrlRepository.findAllNotFetched(pageable)
+        return jobUrlRepository.findByStatus(JobUrlStatus.TO_FETCH, pageable)
             .flatMap {
                 it.retryCount += 1
+                if (it.retryCount > 3) it.status = JobUrlStatus.FAILED
                 save(it)
             }
     }
@@ -52,9 +53,7 @@ class JobUrlService(@Autowired private val jobUrlRepository: JobUrlRepository) {
 
     fun saveAll(jobUrls: List<JobUrl>): Flux<JobUrl> {
         return jobUrlRepository.findAll()
-            .map {
-                it.url
-            }
+            .map { it.url }
             .collectList()
             .flatMapMany { urls ->
                 val unsavedUrls = jobUrls

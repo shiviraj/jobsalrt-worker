@@ -65,4 +65,12 @@ class PostService(
                 save(it)
             }
     }
+
+    fun markedAsUpdateAvailable(source: String): Mono<Post> {
+        return findBySource(source)
+            .flatMap {
+                it.isUpdateAvailable = true
+                save(it)
+            }
+    }
 }

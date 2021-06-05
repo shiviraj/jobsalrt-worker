@@ -33,11 +33,13 @@ abstract class PostFetcher(
                         .flatMap {
                             postService.replaceSource(jobUrl.url, url)
                         }
-                } else {
-                    it.printStackTrace()
-                    jobUrlService.markedAsFailed(jobUrl)
+                        .subscribe()
                 }
-                    .subscribe()
+            }
+            .onErrorContinue { throwable, u ->
+                println(u)
+                throwable.printStackTrace()
+                jobUrlService.markedAsFailed(jobUrl).subscribe()
             }
     }
 
@@ -57,15 +59,10 @@ abstract class PostFetcher(
 
         return rawPostService.findBySource(jobUrl.url)
             .flatMap { rawPost ->
-                rawPost.html = html
                 if (rawPost.html != html) {
-                    postService.findBySource(rawPost.source)
+                    postService.markedAsUpdateAvailable(jobUrl.url)
                         .flatMap {
-                            it.isUpdateAvailable = true
-                            postService.save(it)
-                        }
-                        .flatMap {
-                            rawPostService.save(rawPost)
+                            rawPostService.updateHtml(jobUrl.url, html)
                         }
                 } else {
                     Mono.just(rawPost)
@@ -78,10 +75,19 @@ abstract class PostFetcher(
         return Mono.just(document)
             .flatMap {
                 val post = createPost(Post(source = jobUrl.url), document)
-                postService.save(post)
-                    .flatMap {
-                        rawPostService.save(RawPost(html = parseHtml(document), source = jobUrl.url))
+                Mono.zip(
+                    postService.save(post),
+                    rawPostService.save(RawPost(html = parseHtml(document), source = jobUrl.url))
+                )
+                    .onErrorContinue { throwable, u ->
+                        println(u)
+                        throwable.printStackTrace()
+                        postService.deletePostByUrl(jobUrl.url).subscribe()
+                        rawPostService.deleteBySource(jobUrl.url).subscribe()
                     }
+            }
+            .map {
+                it.t2
             }
     }
 

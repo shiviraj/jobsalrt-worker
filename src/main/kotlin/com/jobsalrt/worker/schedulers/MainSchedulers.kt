@@ -67,16 +67,17 @@ class MainSchedulers(
             .filter { jobUrl ->
                 !blockedJobUrls.any { it.url == jobUrl.url }
             }
-            .flatMapSequential { jobUrl ->
+            .flatMap { jobUrl ->
                 getPostFetcher(jobUrl)
                     .fetch(jobUrl)
                     .flatMap {
                         jobUrl.status = JobUrlStatus.FETCHED
                         jobUrlService.save(jobUrl)
                     }
-                    .doOnError {
-                        it.printStackTrace()
-                    }
+            }
+            .onErrorContinue { throwable, u ->
+                println(u)
+                throwable.printStackTrace()
             }
     }
 

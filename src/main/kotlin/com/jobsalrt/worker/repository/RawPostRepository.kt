@@ -11,4 +11,5 @@ import reactor.core.publisher.Mono
 interface RawPostRepository : ReactiveCrudRepository<RawPost, String> {
     fun findBySource(url: String): Mono<RawPost>
     fun findAllByIsNotified(bool: Boolean, pageable: PageRequest): Flux<RawPost>
+    fun deleteBySource(source: String): Mono<RawPost>
 }
