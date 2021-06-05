@@ -26,8 +26,6 @@ class UpdateFetcher(
                     else -> Mono.empty()
                 }
             }
-
-
     }
 
     private fun isContains(source: String, pattern: String) = source.contains(Regex(pattern, RegexOption.IGNORE_CASE))

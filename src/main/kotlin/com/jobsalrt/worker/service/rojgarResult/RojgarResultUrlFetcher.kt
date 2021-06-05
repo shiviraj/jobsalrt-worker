@@ -1,7 +1,7 @@
 package com.jobsalrt.worker.service.rojgarResult
 
 import com.jobsalrt.worker.domain.JobUrl
-import com.jobsalrt.worker.schedulers.UrlFetcher
+import com.jobsalrt.worker.service.UrlFetcher
 import com.jobsalrt.worker.service.JobUrlService
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.nodes.Document
