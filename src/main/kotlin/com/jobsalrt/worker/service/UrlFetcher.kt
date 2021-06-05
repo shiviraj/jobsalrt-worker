@@ -1,7 +1,6 @@
-package com.jobsalrt.worker.schedulers
+package com.jobsalrt.worker.service
 
 import com.jobsalrt.worker.domain.JobUrl
-import com.jobsalrt.worker.service.JobUrlService
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document

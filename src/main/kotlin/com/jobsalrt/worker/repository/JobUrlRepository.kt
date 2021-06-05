@@ -12,4 +12,5 @@ import reactor.core.publisher.Mono
 interface JobUrlRepository : ReactiveCrudRepository<JobUrl, String> {
     fun findByUrl(url: String): Mono<JobUrl>
     fun findByStatus(status: JobUrlStatus, pageable: PageRequest): Flux<JobUrl>
+    fun deleteByUrl(oldUrl: String): Mono<JobUrl>
 }
