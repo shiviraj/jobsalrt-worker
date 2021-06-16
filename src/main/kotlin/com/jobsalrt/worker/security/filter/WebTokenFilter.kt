@@ -21,7 +21,6 @@ class WebTokenFilter(
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
         val token = request.getHeader("authorization") ?: ""
-        println("$token token")
         val email = webToken.extractEmail(token)
         if (SecurityContextHolder.getContext().authentication == null) {
             val userDetails = adminService.loadUserByUsername(email)
