@@ -109,7 +109,7 @@ class JobSarkariPostFetcher(
             } catch (e: Exception) {
                 null
             },
-            totalVacancies = try {
+            vacancies = try {
                 findValueFromKeyRegex(map, "total vacancies")?.toLong()
             } catch (e: Exception) {
                 null
