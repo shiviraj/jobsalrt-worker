@@ -1,12 +1,14 @@
 package com.jobsalrt.worker.service.postService
 
 import com.jobsalrt.worker.domain.*
+import com.jobsalrt.worker.service.CommunicationService
 import com.jobsalrt.worker.service.JobUrlService
 import com.jobsalrt.worker.webClient.RedirectionError
 import com.jobsalrt.worker.webClient.WebClientWrapper
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Mono
@@ -18,6 +20,9 @@ abstract class PostFetcher(
     private val rawPostService: RawPostService,
     private val jobUrlService: JobUrlService
 ) {
+    @Autowired
+    lateinit var communicationService: CommunicationService
+
     fun fetch(jobUrl: JobUrl): Mono<RawPost> {
         return fetchPostFromUrl(jobUrl.url)
             .flatMap { document ->
@@ -60,6 +65,7 @@ abstract class PostFetcher(
         return rawPostService.findBySource(jobUrl.url)
             .flatMap { rawPost ->
                 if (rawPost.html != html) {
+                    communicationService.notify(rawPost.source, rawPost.html!!, html).block()
                     postService.markedAsUpdateAvailable(jobUrl.url)
                         .flatMap {
                             rawPostService.updateHtml(jobUrl.url, html)

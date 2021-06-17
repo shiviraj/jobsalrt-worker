@@ -18,6 +18,41 @@ class CommunicationService(@Autowired val webClientWrapper: WebClientWrapper) {
         )
     }
 
+    fun notify(source: String, old: String, new: String): Mono<String> {
+        return webClientWrapper.post(
+            baseUrl = "https://hooks.slack.com",
+            path = "/services/T011LMY6ZF0/B025DEF0ABD/OabKfnu8KTNkIgFahR7tJ6T2",
+            body = mapOf(
+                "blocks" to listOf(
+                    mapOf(
+                        "type" to "section",
+                        "fields" to listOf(
+                            mapOf(
+                                "type" to "mrkdwn",
+                                "text" to old
+                            ),
+                            mapOf(
+                                "type" to "mrkdwn",
+                                "text" to new
+                            ),
+                        )
+                    ),
+                    mapOf(
+                        "type" to "section",
+                        "fields" to listOf(
+                            mapOf(
+                                "type" to "mrkdwn",
+                                "text" to source
+                            )
+                        )
+                    )
+
+                )
+            ),
+            returnType = String::class.java,
+        )
+    }
+
     private fun createMessageBody(
         basicDetails: BasicDetails,
         failures: List<String>
