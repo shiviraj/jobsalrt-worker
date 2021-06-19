@@ -56,11 +56,11 @@ class PostRepositoryOps(
         if (filter.search.isNotEmpty()) {
             query.addCriteria(
                 Criteria.where("").orOperator(
-                    Criteria.where("basicDetails.url").regex(".*${filter.search}.*"),
-                    Criteria.where("basicDetails.name").regex(".*${filter.search}.*"),
-                    Criteria.where("basicDetails.location").regex(".*${filter.search}.*"),
-                    Criteria.where("basicDetails.company").regex(".*${filter.search}.*"),
-                    Criteria.where("basicDetails.qualification").regex(".*${filter.search}.*"),
+                    Criteria.where("basicDetails.url").regex(".*${filter.search}.*", "i"),
+                    Criteria.where("basicDetails.name").regex(".*${filter.search}.*", "i"),
+                    Criteria.where("basicDetails.location").regex(".*${filter.search}.*", "i"),
+                    Criteria.where("basicDetails.company").regex(".*${filter.search}.*", "i"),
+                    Criteria.where("basicDetails.qualification").regex(".*${filter.search}.*", "i"),
                 )
             )
         }

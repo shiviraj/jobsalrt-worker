@@ -57,7 +57,7 @@ data class BasicDetailsBuilder(
     val formType: FormType? = null,
     val advtNo: String? = null,
     val lastDate: LocalDate? = null,
-    val totalVacancies: Long? = null,
+    val vacancies: Long? = null,
     val location: String? = null,
     val company: String? = null,
     val qualification: String? = null,
@@ -72,14 +72,13 @@ data class BasicDetailsBuilder(
             formType = formType,
             advtNo = advtNo,
             lastDate = lastDate,
-            totalVacancies = totalVacancies,
+            vacancies = vacancies,
             location = location,
             company = company,
             qualification = qualification,
             minAgeLimit = minAgeLimit,
             maxAgeLimit = maxAgeLimit,
             postLogo = postLogo,
-            url = url
         )
     }
 }

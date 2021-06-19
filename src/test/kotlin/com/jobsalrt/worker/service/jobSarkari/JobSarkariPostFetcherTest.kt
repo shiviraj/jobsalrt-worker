@@ -361,7 +361,7 @@ class JobSarkariPostFetcherTest {
             name = "DSSSB 7236 Various Post Online Form 2021 Recruitment",
             formType = FormType.ONLINE,
             lastDate = LocalDate.of(2021, 6, 24),
-            totalVacancies = 7236,
+            vacancies = 7236,
             location = "Delhi",
             company = "DSSSB (Delhi Subordinate Services Selection Board)",
             qualification = "10th Pass, 12th Pass, Graduation, Other Qualifications, Post Graduate",

@@ -12,7 +12,6 @@ import io.mockk.verify
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 class JobUrlServiceTest {
@@ -45,17 +44,17 @@ class JobUrlServiceTest {
         }
     }
 
-    @Test
-    fun `should get all urls which are not fetched`() {
-        val url = JobUrlBuilder().build()
-        every { jobUrlRepository.findAllNotFetched(any()) } returns Flux.just(url)
-
-        val urls = jobUrlService.getAllNotFetched()
-
-        assertNextWith(urls) {
-            it shouldBe url
-        }
-    }
+//    @Test
+//    fun `should get all urls which are not fetched`() {
+//        val url = JobUrlBuilder().build()
+//        every { jobUrlRepository.findAllNotFetched(any()) } returns Flux.just(url)
+//
+//        val urls = jobUrlService.getAllNotFetched()
+//
+//        assertNextWith(urls) {
+//            it shouldBe url
+//        }
+//    }
 
     @Test
     fun `should find job url by url`() {
