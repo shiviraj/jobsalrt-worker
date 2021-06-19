@@ -59,8 +59,8 @@ abstract class PostFetcher(
     fun updateRawPostIfAvailable(document: Document, jobUrl: JobUrl): Mono<RawPost> {
         val html = parseHtml(document)
             .replace(Regex("<[^a][^>]*>", RegexOption.IGNORE_CASE), "")
-            .replace(" ", "")
-            .replace("\n", "")
+            .replace(Regex("<a.*href=\"([^h])[^>]*>", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("[ \n\t]"), "")
 
         return rawPostService.findBySource(jobUrl.url)
             .flatMap { rawPost ->
