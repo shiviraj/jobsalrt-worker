@@ -57,10 +57,7 @@ abstract class PostFetcher(
 
     @Transactional(rollbackForClassName = ["Exception"])
     fun updateRawPostIfAvailable(document: Document, jobUrl: JobUrl): Mono<RawPost> {
-        val html = parseHtml(document)
-            .replace(Regex("<[^a][^>]*>", RegexOption.IGNORE_CASE), "")
-            .replace(Regex("<a.*href=\"([^h])[^>]*>", RegexOption.IGNORE_CASE), "")
-            .replace(Regex("[ \n\t]"), "")
+        val html = parseHTMLText(document)
 
         return rawPostService.findBySource(jobUrl.url)
             .flatMap { rawPost ->
@@ -83,7 +80,7 @@ abstract class PostFetcher(
                 val post = createPost(Post(source = jobUrl.url), document)
                 Mono.zip(
                     postService.save(post),
-                    rawPostService.save(RawPost(html = parseHtml(document), source = jobUrl.url))
+                    rawPostService.save(RawPost(html = parseHTMLText(document), source = jobUrl.url))
                 )
                     .onErrorContinue { throwable, u ->
                         println(u)
@@ -95,6 +92,13 @@ abstract class PostFetcher(
             .map {
                 it.t2
             }
+    }
+
+    private fun parseHTMLText(document: Document): String {
+        return parseHtml(document)
+            .replace(Regex("<[^a][^>]*>", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("<a.*href=\"([^h])[^>]*>", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("[ \n\t]"), "")
     }
 
     private fun fetchPostFromUrl(url: String): Mono<Document> {
