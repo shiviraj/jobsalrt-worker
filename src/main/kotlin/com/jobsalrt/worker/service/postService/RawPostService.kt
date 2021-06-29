@@ -26,7 +26,7 @@ class RawPostService(@Autowired private val rawPostRepository: RawPostRepository
     fun updateHtml(source: String, html: String): Mono<RawPost> {
         return findBySource(source)
             .flatMap {
-                it.html = html
+                it.updateHtml(html)
                 save(it)
             }
     }

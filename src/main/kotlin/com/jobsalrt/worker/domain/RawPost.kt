@@ -19,4 +19,9 @@ data class RawPost(
     val source: String,
     val createdAt: LocalDate = LocalDate.now(),
     var isNotified: Boolean = false
-)
+) {
+    fun updateHtml(html: String) {
+        this.html = html
+        isNotified = false
+    }
+}

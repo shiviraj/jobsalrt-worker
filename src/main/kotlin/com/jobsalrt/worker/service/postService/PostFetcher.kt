@@ -62,7 +62,6 @@ abstract class PostFetcher(
         return rawPostService.findBySource(jobUrl.url)
             .flatMap { rawPost ->
                 if (rawPost.html != html) {
-                    communicationService.notify(rawPost.source, rawPost.html!!, html).block()
                     postService.markedAsUpdateAvailable(jobUrl.url)
                         .flatMap {
                             rawPostService.updateHtml(jobUrl.url, html)

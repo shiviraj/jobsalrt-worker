@@ -1,6 +1,7 @@
 package com.jobsalrt.worker
 
 import com.jobsalrt.worker.service.JobUrlService
+import com.jobsalrt.worker.service.Notifier
 import com.jobsalrt.worker.service.PostUpdater
 import com.jobsalrt.worker.service.UrlService
 import com.jobsalrt.worker.utils.DateProvider
@@ -41,7 +42,8 @@ class CommandLineAppStartupRunner(
     @Autowired val dateProvider: DateProvider,
     @Autowired val jobUrlService: JobUrlService,
     @Autowired val urlService: UrlService,
-    @Autowired val postUpdater: PostUpdater
+    @Autowired val postUpdater: PostUpdater,
+    @Autowired val notifier: Notifier
 
 ) : CommandLineRunner {
     override fun run(vararg args: String) {
@@ -51,7 +53,7 @@ class CommandLineAppStartupRunner(
         if (dateProvider.getMinute() <= 10)
             urlService.fetchUrls().blockLast()
         postUpdater.updatePosts().blockLast()
-//        sendNotification().subscribeOn(Schedulers.boundedElastic()).blockLast()
+        notifier.notify().blockLast()
         SpringApplication.exit(appContext)
         exitProcess(0)
     }
