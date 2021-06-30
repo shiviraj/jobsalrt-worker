@@ -34,45 +34,22 @@ class CommunicationService(@Autowired val webClientWrapper: WebClientWrapper) {
                     "type" to "section",
                     "text" to mapOf(
                         "type" to "plain_text",
-                        "text" to "Last Update on: ${post.postUpdateDate.format(DateTimeFormatter.ISO_DATE_TIME)}",
+                        "text" to "Source: ${getSource(post.source)}\nLast Update on: ${
+                            post.postUpdateDate.format(
+                                DateTimeFormatter.ISO_DATE_TIME
+                            )
+                        }",
                         "emoji" to true
-                    ),
-                    "accessory" to mapOf(
-                        "type" to "radio_buttons",
-                        "action_id" to "this_is_an_action_id",
-                        "initial_option" to mapOf(
-                            "value" to "TODO",
-                            "text" to mapOf(
-                                "type" to "plain_text",
-                                "text" to "TODO"
-                            ),
-                        ),
-                        "options" to listOf(
-                            mapOf(
-                                "value" to "TODO",
-                                "text" to mapOf(
-                                    "type" to "plain_text",
-                                    "text" to "TODO"
-                                ),
-                            ),
-                            mapOf(
-                                "value" to "DOING",
-                                "text" to mapOf(
-                                    "type" to "plain_text",
-                                    "text" to "DOING"
-                                ),
-                            ),
-                            mapOf(
-                                "value" to "DONE",
-                                "text" to mapOf(
-                                    "type" to "plain_text",
-                                    "text" to "DONE"
-                                ),
-                            ),
-                        ),
                     ),
                 ),
             ),
         )
+    }
+
+    private fun getSource(source: String): String {
+        if (source.contains("sarkariresult", true)) return "SARKARI RESULT"
+        if (source.contains("jobsarkari", true)) return "JOB SARKARI"
+        if (source.contains("rojgarresult", true)) return "ROJGAR RESULT"
+        return ""
     }
 }
