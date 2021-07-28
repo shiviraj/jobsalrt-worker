@@ -47,10 +47,10 @@ class CommandLineAppStartupRunner(
 
 ) : CommandLineRunner {
     override fun run(vararg args: String) {
-        if (dateProvider.getHour() == 8 && dateProvider.getMinute() <= 10)
+        if (dateProvider.getHour() == 0)
             jobUrlService.deleteAll().block()
 
-        if (dateProvider.getMinute() <= 10)
+        if (dateProvider.getMinute() <= 20)
             urlService.fetchUrls().blockLast()
         postUpdater.updatePosts().blockLast()
         notifier.notify().blockLast()
